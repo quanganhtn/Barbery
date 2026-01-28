@@ -1,0 +1,184 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+:root {
+    --darker: #0a0b0f;
+    --dark: #111318;
+    --gold: #d4af37;
+}
+
+.font-body {
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+}
+
+.font-display {
+    font-family: "Playfair Display", serif;
+}
+
+.bg-darker {
+    background: #0a0b0f;
+}
+
+.bg-dark {
+    background: #111318;
+}
+
+.text-gold {
+    color: #d4af37;
+}
+
+
+.border-gold {
+    border-color: rgba(212, 175, 55, .9);
+}
+
+.gradient-gold {
+    background: linear-gradient(135deg, #f6e27a 0%, #d4af37 40%, #b88a1f 100%);
+}
+
+/* card hover */
+.card-hover {
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 35px rgba(0, 0, 0, .35);
+    border-color: rgba(212, 175, 55, .25);
+}
+
+/* pulse */
+.pulse-gold {
+    position: relative;
+}
+
+.pulse-gold::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 9999px;
+    border: 2px solid rgba(212, 175, 55, .35);
+    animation: pulseGold 1.6s ease-out infinite;
+}
+
+@keyframes pulseGold {
+    0% {
+        transform: scale(.92);
+        opacity: .7;
+    }
+
+    100% {
+        transform: scale(1.12);
+        opacity: 0;
+    }
+}
+
+/* fade in */
+.fade-in {
+    animation: fadeIn .35s ease-out both;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* booking step indicator */
+.step-indicator {
+    background: #2b2f39;
+    color: #9ca3af;
+}
+
+.step-active {
+    background: #d4af37;
+    color: #000;
+}
+
+/* mobile menu animation (optional) */
+.mobile-menu {
+    transform: translateX(-110%);
+    transition: transform .22s ease;
+}
+
+.mobile-menu.is-open {
+    transform: translateX(0);
+}
+
+.overlay {
+    opacity: 0;
+    transition: opacity .18s ease;
+}
+
+.overlay.is-open {
+    opacity: 1;
+}
+
+/* remove focus ring harshness */
+input:focus,
+textarea:focus {
+    outline: none;
+}
+
+/* Card selected (dịch vụ / stylist) */
+.service-card.selected,
+.stylist-card.selected {
+    border: 2px solid #D4AF37;
+    /* vàng */
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, .22);
+}
+
+/* Date button */
+.date-btn {
+    border: 1px solid #374151;
+    background: rgba(255, 255, 255, .03);
+    color: #d1d5db;
+    padding: 10px 12px;
+    border-radius: 12px;
+    min-width: 62px;
+    transition: .15s ease;
+}
+
+.date-btn:hover {
+    border-color: rgba(212, 175, 55, .7);
+}
+
+.date-btn.selected {
+    background: #D4AF37;
+    color: #111827;
+    border-color: #D4AF37;
+}
+
+/* Time slot */
+.time-slot {
+    border: 1px solid #374151;
+    background: rgba(255, 255, 255, .03);
+    color: #e5e7eb;
+    padding: 10px 0;
+    border-radius: 12px;
+    transition: .15s ease;
+}
+
+.time-slot:hover {
+    border-color: rgba(212, 175, 55, .7);
+}
+
+.time-slot.selected {
+    background: #D4AF37;
+    color: #111827;
+    border-color: #D4AF37;
+}
+
+.time-slot:disabled,
+.time-slot[disabled] {
+    opacity: .35;
+    cursor: not-allowed;
+}

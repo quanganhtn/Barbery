@@ -1,0 +1,55 @@
+<?php
+
+use App\Http\Controllers\Admin\BookingActionController;
+use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\CatalogApiController;
+use App\Http\Controllers\SiteController;
+use Illuminate\Support\Facades\Route;
+use TCG\Voyager\Facades\Voyager;
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
+
+// ===== SITE PAGES =====
+//trang chủ
+Route::get('/', [SiteController::class, 'home'])->name('site.home');
+// đặt lịch
+Route::get('/booking', [SiteController::class, 'booking'])->name('site.booking');
+//tra cứu lịch
+Route::get('/lookup', [SiteController::class, 'lookup'])->name('site.lookup');
+
+// ===== VOYAGER ADMIN =====
+Route::group(['prefix' => 'admin'], function () {
+    Voyager::routes();
+});
+
+Route::group(['prefix' => 'admin', 'middleware' => ['admin.user']], function () {
+    Route::match(['GET', 'POST'], 'bookings/{id}/confirm', [BookingActionController::class, 'confirm'])
+        ->name('admin.bookings.action.confirm');
+
+    Route::match(['GET', 'POST'], 'bookings/{id}/cancel', [BookingActionController::class, 'cancel'])
+        ->name('admin.bookings.action.cancel');
+
+    Route::match(['GET', 'POST'], 'bookings/{id}/complete', [BookingActionController::class, 'complete'])
+        ->name('admin.bookings.action.complete');
+});
+
+
+// ===== API =====
+Route::prefix('api')->group(function () {
+    //danh sách dịch vụ
+    Route::get('/services', [CatalogApiController::class, 'services'])->name('api.services');
+    //danh sách thợ
+    Route::get('/stylists', [CatalogApiController::class, 'stylists'])->name('api.stylists');
+    //khung giờ đã có ngươì đặt
+    Route::get('/booked-slots', [BookingController::class, 'bookedSlots'])->name('api.bookings.bookedSlots');
+    //tạo lịch đặt mới
+    Route::post('/bookings', [BookingController::class, 'store'])->name('api.bookings.store');
+    //tra cứu lich
+    Route::get('/lookup', [BookingController::class, 'lookup'])->name('api.lookup');
+    //tự ẩn slot bị chiếm
+    Route::get('/available-slots', [BookingController::class, 'availableSlots'])->name('api.availableSlots');
+});
