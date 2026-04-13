@@ -45,7 +45,7 @@
         </main>
 
         @include('partials.barbery.ui')
-
+        @include('partials.barbery.chatbox')
     </div>
 
 

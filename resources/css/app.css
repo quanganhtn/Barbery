@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 :root {
     --darker: #0a0b0f;
     --dark: #111318;
@@ -29,27 +28,26 @@
     color: #d4af37;
 }
 
-
 .border-gold {
-    border-color: rgba(212, 175, 55, .9);
+    border-color: rgba(212, 175, 55, 0.9);
 }
 
 .gradient-gold {
     background: linear-gradient(135deg, #f6e27a 0%, #d4af37 40%, #b88a1f 100%);
 }
 
-/* card hover */
+/* Card hover */
 .card-hover {
-    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
 .card-hover:hover {
     transform: translateY(-2px);
-    box-shadow: 0 14px 35px rgba(0, 0, 0, .35);
-    border-color: rgba(212, 175, 55, .25);
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.35);
+    border-color: rgba(212, 175, 55, 0.25);
 }
 
-/* pulse */
+/* Pulse */
 .pulse-gold {
     position: relative;
 }
@@ -59,14 +57,14 @@
     position: absolute;
     inset: -6px;
     border-radius: 9999px;
-    border: 2px solid rgba(212, 175, 55, .35);
+    border: 2px solid rgba(212, 175, 55, 0.35);
     animation: pulseGold 1.6s ease-out infinite;
 }
 
 @keyframes pulseGold {
     0% {
-        transform: scale(.92);
-        opacity: .7;
+        transform: scale(0.92);
+        opacity: 0.7;
     }
 
     100% {
@@ -75,9 +73,9 @@
     }
 }
 
-/* fade in */
+/* Fade in */
 .fade-in {
-    animation: fadeIn .35s ease-out both;
+    animation: fadeIn 0.35s ease-out both;
 }
 
 @keyframes fadeIn {
@@ -92,7 +90,7 @@
     }
 }
 
-/* booking step indicator */
+/* Booking step indicator */
 .step-indicator {
     background: #2b2f39;
     color: #9ca3af;
@@ -103,10 +101,10 @@
     color: #000;
 }
 
-/* mobile menu animation (optional) */
+/* Mobile menu animation */
 .mobile-menu {
     transform: translateX(-110%);
-    transition: transform .22s ease;
+    transition: transform 0.22s ease;
 }
 
 .mobile-menu.is-open {
@@ -115,70 +113,78 @@
 
 .overlay {
     opacity: 0;
-    transition: opacity .18s ease;
+    transition: opacity 0.18s ease;
 }
 
 .overlay.is-open {
     opacity: 1;
 }
 
-/* remove focus ring harshness */
+/* Remove focus ring harshness */
 input:focus,
 textarea:focus {
     outline: none;
 }
 
-/* Card selected (dịch vụ / stylist) */
+/* Selected card: dịch vụ / stylist */
 .service-card.selected,
 .stylist-card.selected {
-    border: 2px solid #D4AF37;
-    /* vàng */
-    box-shadow: 0 0 0 3px rgba(212, 175, 55, .22);
+    border: 2px solid #d4af37;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.22);
 }
 
 /* Date button */
 .date-btn {
-    border: 1px solid #374151;
-    background: rgba(255, 255, 255, .03);
-    color: #d1d5db;
-    padding: 10px 12px;
-    border-radius: 12px;
     min-width: 62px;
-    transition: .15s ease;
+    padding: 10px 12px;
+    border: 1px solid #374151;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    color: #d1d5db;
+    transition: all 0.15s ease;
 }
 
 .date-btn:hover {
-    border-color: rgba(212, 175, 55, .7);
+    border-color: rgba(212, 175, 55, 0.7);
 }
 
 .date-btn.selected {
-    background: #D4AF37;
+    background: #d4af37;
     color: #111827;
-    border-color: #D4AF37;
+    border-color: #d4af37;
 }
 
 /* Time slot */
 .time-slot {
-    border: 1px solid #374151;
-    background: rgba(255, 255, 255, .03);
-    color: #e5e7eb;
-    padding: 10px 0;
-    border-radius: 12px;
-    transition: .15s ease;
+    padding: 12px 16px;
+    border: 1px solid #2f3b52;
+    border-radius: 14px;
+    background: #0f1724;
+    color: #ffffff;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
-.time-slot:hover {
-    border-color: rgba(212, 175, 55, .7);
+.time-slot:hover:not(:disabled) {
+    border-color: #d4af37;
+    transform: translateY(-1px);
 }
 
 .time-slot.selected {
-    background: #D4AF37;
+    background: #d4af37;
     color: #111827;
-    border-color: #D4AF37;
+    border-color: #d4af37;
+    box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
 }
 
 .time-slot:disabled,
-.time-slot[disabled] {
-    opacity: .35;
+.time-slot[disabled],
+.time-slot.disabled-slot {
+    background: #111827;
+    color: #6b7280;
+    border-color: #1f2937;
+    opacity: 0.45;
     cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
 }

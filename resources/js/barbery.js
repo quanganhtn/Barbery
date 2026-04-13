@@ -46,7 +46,7 @@ async function loadCatalog() {
         id: x.id,
         name: x.name,
         price: Number(x.price || 0),
-        duration_min: Number(x.duration_min || x.duration || 30), // fallback 30
+        duration_min: Number(x.duration_min || 30),
         icon: x.icon || "⭐",
     }));
 
@@ -80,8 +80,9 @@ async function loadCatalog() {
 // ===== LEGACY TIME SLOTS (không còn dùng để render UI, chỉ giữ để reference) =====
 const timeSlots = [
     "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
-    "18:00", "18:30", "19:00", "19:30", "20:00", "20:30",
+    "12:00", "12:30", "13:00", "13:30",
+    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+    "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
 ];
 
 // ===== APP STATE =====
@@ -110,7 +111,7 @@ function minutesToText(m) {
 }
 
 function computeTotalDuration(selectedServices) {
-    return (selectedServices || []).reduce((sum, s) => sum + parseInt(s.duration_min || 30, 10), 0);
+    return (selectedServices || []).reduce((sum, s) => sum + Number(s.duration_min || 0), 0);
 }
 
 function computeEndTime(dateStr, timeStr, totalMin) {
@@ -306,7 +307,7 @@ window.resetBooking = function () {
     $("booking-step-1")?.classList.remove("hidden");
     $("booking-success")?.classList.add("hidden");
 
-    ["customer-name", "customer-phone", "customer-notes"].forEach((id) => {
+    ["customer-name", "customer-phone", "customer-email", "customer-notes"].forEach((id) => {
         if ($(id)) $(id).value = "";
     });
 
@@ -477,28 +478,44 @@ function renderTimeSlots() {
 
     if (!canLoadSlots()) {
         c.innerHTML = `
-      <div class="col-span-4 sm:col-span-6 text-gray-500 text-sm">
-        Vui lòng chọn dịch vụ, thợ cắt và ngày để xem giờ trống.
-      </div>`;
+            <div class="col-span-4 sm:col-span-6 text-gray-500 text-sm">
+                Vui lòng chọn dịch vụ, thợ cắt và ngày để xem giờ trống.
+            </div>`;
         return;
     }
 
-    const slots = Array.from(availableTimes).sort();
-    if (slots.length === 0) {
+    // Dùng toàn bộ danh sách giờ chuẩn để render
+    const allSlots = [...timeSlots];
+
+    const hasAnyAvailable = allSlots.some(t => availableTimes.has(t));
+
+    if (!hasAnyAvailable) {
         c.innerHTML = `
-      <div class="col-span-4 sm:col-span-6 text-gray-500 text-sm">
-        Không còn khung giờ phù hợp cho tổng thời gian đã chọn.
-      </div>`;
+            <div class="col-span-4 sm:col-span-6 text-gray-500 text-sm">
+                Không còn khung giờ phù hợp cho tổng thời gian đã chọn.
+            </div>`;
         return;
     }
 
-    c.innerHTML = slots.map((t) => `
-    <button class="time-slot ${bookingData.time === t ? "selected" : ""}"
-      onclick="selectTime('${t}')">${t}</button>
-  `).join("");
+    c.innerHTML = allSlots.map((t) => {
+        const isAvailable = availableTimes.has(t);
+        const isSelected = bookingData.time === t;
+
+        return `
+            <button
+                type="button"
+                class="time-slot ${isSelected ? "selected" : ""} ${!isAvailable ? "disabled-slot" : ""}"
+                ${isAvailable ? `onclick="selectTime('${t}')"` : "disabled"}
+            >
+                ${t}
+            </button>
+        `;
+    }).join("");
 }
 
 window.selectTime = function (t) {
+    if (!availableTimes.has(t)) return;
+
     bookingData.time = t;
     renderTimeSlots();
     validateStep3();
@@ -540,16 +557,21 @@ window.updateSummary = updateSummary;
 // SUBMIT BOOKING
 // =========================================================
 window.submitBooking = async function () {
+    // Lấy dữ liệu từ form
     const name = $("customer-name").value.trim();
     const phone = normalizePhone($("customer-phone").value.trim());
+    const email = $("customer-email").value.trim();
     const notes = $("customer-notes").value.trim();
 
-    if (!name || !phone) {
-        showToast("Nhập tên & SĐT", "error");
+    // Validate phía client
+    if (!name || !phone || !email) {
+        showToast("Vui lòng nhập họ tên, số điện thoại và email", "error");
         return;
     }
+
+    // Kiểm tra dữ liệu booking đã chọn đủ chưa
     if (!bookingData.services?.length || !bookingData.stylist || !bookingData.date || !bookingData.time) {
-        showToast("Thiếu thông tin", "error");
+        showToast("Thiếu thông tin đặt lịch", "error");
         return;
     }
 
@@ -564,8 +586,12 @@ window.submitBooking = async function () {
                 "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
             },
             body: JSON.stringify({
+                // Thông tin khách
                 customer_name: name,
                 customer_phone: phone,
+                customer_email: email,
+
+                // Thông tin booking
                 service_ids: bookingData.services.map((s) => s.id),
                 stylist_id: bookingData.stylist.id,
                 booking_date: bookingData.date,
@@ -582,13 +608,17 @@ window.submitBooking = async function () {
             return;
         }
 
+        // Ẩn các step và hiện màn hình thành công
         document.querySelectorAll(".booking-step").forEach((s) => s.classList.add("hidden"));
         $("booking-success").classList.remove("hidden");
+
+        // Hiển thị mã đặt lịch
         $("booking-code-display").textContent = json.data.booking_code;
+
         showToast("Đặt lịch thành công!");
-    } catch {
+    } catch (error) {
         showLoading(false);
-        showToast("Không kết nối server", "error");
+        showToast("Không kết nối được server", "error");
     }
 };
 

@@ -122,7 +122,17 @@
                                         class="w-full px-4 py-3 bg-dark border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-gold transition-colors"
                                         placeholder="Nhập số điện thoại">
                                 </div>
-
+                                <div>
+                                    <label for="customer-email" class="block text-sm font-medium text-gray-300 mb-2">
+                                        Email nhận mã tra cứu <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="email" id="customer-email" required
+                                        class="w-full px-4 py-3 bg-dark border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-gold transition-colors"
+                                        placeholder="Nhập email của bạn">
+                                    <p class="text-xs text-gray-500 mt-2">
+                                        Chúng tôi sẽ gửi mã tra cứu và thông tin lịch hẹn qua email này.
+                                    </p>
+                                </div>
                                 <div>
                                     <label for="customer-notes" class="block text-sm font-medium text-gray-300 mb-2">Ghi
                                         chú (tuỳ chọn)</label>
@@ -199,9 +209,11 @@
                 <h2 class="font-display text-2xl sm:text-3xl font-bold text-white mb-4">Đặt lịch thành công!</h2>
                 <p class="text-gray-400 mb-6">Cảm ơn bạn đã đặt lịch. Chúng tôi sẽ xác nhận sớm nhất.</p>
                 <div class="bg-dark rounded-2xl p-6 border border-gray-800 max-w-md mx-auto mb-8">
-                    <p class="text-sm text-gray-400 mb-2">Mã đặt lịch của bạn</p>
-                    <p id="booking-code-display" class="text-2xl font-bold text-gold">-</p>
-                    <p class="text-sm text-gray-500 mt-2">Lưu mã này để tra cứu lịch hẹn</p>
+                    <p class="text-sm text-gray-400 mb-2">Yêu cầu đặt lịch đã được ghi nhận</p>
+                    <p class="text-lg font-semibold text-gold">Đang chờ xác nhận từ Barbery</p>
+                    <p class="text-sm text-gray-500 mt-2">
+                        Sau khi nhân viên xác nhận, chúng tôi sẽ gửi email kèm mã tra cứu và thông tin lịch hẹn cho bạn.
+                    </p>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('site.home') }}"

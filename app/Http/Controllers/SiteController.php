@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Review;
 use App\Models\Gallery;
 use App\Models\Service;
 use App\Models\Stylist;
@@ -24,13 +23,13 @@ class SiteController extends Controller
         $categories = ServiceCategory::query()
             ->where('is_active', 1)
             ->orderBy('sort_order')
-            ->limit(3) // ✅ nếu bạn muốn đúng 3 cột (giống UI)
+            ->limit(3) // nếu bạn muốn đúng 3 cột (giống UI)
             ->get();
 
         // Services theo category_id (chỉ lấy những service có category_id)
         $servicesByCategory = Service::query()
             ->where('is_active', 1)
-            ->whereNotNull('category_id') // ✅ tránh bị group null làm hỏng UI
+            ->whereNotNull('category_id') // tránh bị group null làm hỏng UI
             ->orderBy('sort_order')
             ->orderBy('price')
             ->get()

@@ -26,6 +26,8 @@ class Service extends Model
         'is_featured' => 'boolean',
         'is_hot' => 'boolean',
         'category_id' => 'integer',
+        'duration_min' => 'integer',
+        'price' => 'integer',
     ];
 
     public function bookings()
@@ -37,5 +39,11 @@ class Service extends Model
     public function category()
     {
         return $this->belongsTo(ServiceCategory::class, 'category_id');
+    }
+    public function bookingsMany()
+    {
+        return $this->belongsToMany(Booking::class, 'booking_service')
+            ->withPivot(['service_name', 'price', 'duration_min'])
+            ->withTimestamps();
     }
 }

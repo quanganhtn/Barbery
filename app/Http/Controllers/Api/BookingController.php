@@ -6,22 +6,27 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Service;
 use App\Models\Stylist;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class BookingController extends Controller
 {
-    // ===== Helpers =====
+    /**
+     * Chuẩn hóa số điện thoại:
+     * +84xxxxxxxxx hoặc 84xxxxxxxxx -> 0xxxxxxxxx
+     */
     private function normalizePhone(string $value): string
     {
         $raw = preg_replace('/\s+/', '', $value);
-        // +84xxxxxxxxx hoặc 84xxxxxxxxx -> 0xxxxxxxxx
         $normalized = preg_replace('/^\+?84/', '0', $raw);
         return $normalized;
     }
 
+    /**
+     * Validate số điện thoại Việt Nam cơ bản
+     */
     private function validatePhoneOrFail(string $value, callable $fail): void
     {
         $phone = $this->normalizePhone($value);
@@ -43,12 +48,31 @@ class BookingController extends Controller
         }
     }
 
-    // ===== (Optional) nếu bạn vẫn dùng endpoint này =====
+    /**
+     * Sinh mã đặt lịch dạng BKXXXXXX
+     */
+    private function generateBookingCode(): string
+    {
+        return 'BK' . strtoupper(Str::random(6));
+    }
+
+    /**
+     * Sinh mã tra cứu 6 số
+     * Ví dụ: 048231
+     */
+    private function generateLookupCode(): string
+    {
+        return str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * API lấy các khung giờ đã bị chiếm theo stylist
+     */
     public function bookedSlots(Request $request)
     {
         $data = $request->validate([
-            'date'       => ['required', 'date_format:Y-m-d'],
-            'stylist_id'  => ['required', 'integer', 'exists:stylists,id'],
+            'date' => ['required', 'date_format:Y-m-d'],
+            'stylist_id' => ['required', 'integer', 'exists:stylists,id'],
         ]);
 
         $slots = Booking::query()
@@ -57,13 +81,20 @@ class BookingController extends Controller
             ->whereIn('status', ['pending', 'confirmed'])
             ->pluck('booking_time');
 
-        return response()->json(['ok' => true, 'data' => $slots]);
+        return response()->json([
+            'ok' => true,
+            'data' => $slots,
+        ]);
     }
 
+    /**
+     * API tạo booking mới
+     */
     public function store(Request $request)
     {
         $data = $request->validate([
-            'customer_name'  => ['required', 'string', 'max:120'],
+            // Thông tin khách
+            'customer_name' => ['required', 'string', 'max:120'],
             'customer_phone' => [
                 'required',
                 'string',
@@ -72,17 +103,20 @@ class BookingController extends Controller
                     $this->validatePhoneOrFail($value, $fail);
                 },
             ],
+            'customer_email' => ['required', 'email', 'max:150'],
 
-            'service_ids'    => ['required', 'array', 'min:1'],
-            'service_ids.*'  => ['integer', 'exists:services,id'],
+            // Dịch vụ
+            'service_ids' => ['required', 'array', 'min:1'],
+            'service_ids.*' => ['integer', 'exists:services,id'],
 
-            'stylist_id'     => ['required', 'integer', 'exists:stylists,id'],
-            'booking_date'   => ['required', 'date_format:Y-m-d'],
-            'booking_time'   => ['required', 'string', 'max:10'],
-            'notes'          => ['nullable', 'string', 'max:500'],
+            // Lịch hẹn
+            'stylist_id' => ['required', 'integer', 'exists:stylists,id'],
+            'booking_date' => ['required', 'date_format:Y-m-d'],
+            'booking_time' => ['required', 'string', 'max:10'],
+            'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
-        // ✅ Chuẩn hoá SĐT trước khi lưu + trước khi query chống spam
+        // Chuẩn hóa số điện thoại trước khi query/lưu
         $data['customer_phone'] = $this->normalizePhone($data['customer_phone']);
 
         $stylist = Stylist::findOrFail($data['stylist_id']);
@@ -92,20 +126,25 @@ class BookingController extends Controller
             ->get(['id', 'name', 'price', 'duration_min']);
 
         if ($serviceRows->count() === 0) {
-            abort(422, 'Vui lòng chọn ít nhất 1 dịch vụ hợp lệ.');
+            return response()->json([
+                'message' => 'Vui lòng chọn ít nhất 1 dịch vụ hợp lệ.',
+            ], 422);
         }
 
-        $serviceName   = $serviceRows->pluck('name')->join(', ');
-        $totalPrice    = (int) $serviceRows->sum(fn($s) => (int) $s->price);
-        $totalDuration = (int) $serviceRows->sum(fn($s) => (int) ($s->duration_min ?? 30));
+        // Tính toán thông tin booking
+        $serviceName = $serviceRows->pluck('name')->join(', ');
+        $totalPrice = (int) $serviceRows->sum(fn($s) => (int) $s->price);
+        $totalDuration = (int) $serviceRows->sum(fn($s) => (int) $s->duration_min);
         $firstServiceId = (int) $serviceRows->first()->id;
 
         $startAt = Carbon::createFromFormat('Y-m-d H:i', $data['booking_date'] . ' ' . $data['booking_time']);
-        $endAt   = $startAt->copy()->addMinutes($totalDuration);
+        $endAt = $startAt->copy()->addMinutes($totalDuration);
 
+        // Dùng transaction để tránh race condition
         $booking = DB::transaction(function () use (
             $data,
             $stylist,
+            $serviceRows,
             $firstServiceId,
             $serviceName,
             $totalPrice,
@@ -113,21 +152,28 @@ class BookingController extends Controller
             $startAt,
             $endAt
         ) {
-            // ✅ CHỐNG SPAM THEO SĐT:
-            // Chặn nếu số này đang có booking pending/confirmed (dù là thợ nào) và booking đó chưa kết thúc.
+            /**
+             * Chặn spam theo số điện thoại:
+             * Nếu số này đang có booking pending/confirmed
+             * và booking đó chưa kết thúc -> không cho đặt tiếp
+             */
             $hasOpenBooking = Booking::query()
                 ->where('customer_phone', $data['customer_phone'])
                 ->whereIn('status', ['pending', 'confirmed'])
                 ->whereNotNull('end_at')
-                ->where('end_at', '>=', now())   // future + in-progress đều bị chặn
+                ->where('end_at', '>=', now())
                 ->lockForUpdate()
                 ->exists();
 
             if ($hasOpenBooking) {
-                abort(429, 'Số điện thoại này đang có lịch hẹn pending/confirmed. Vui lòng huỷ/hoàn thành lịch cũ trước khi đặt thêm.');
+                return response()->json([
+                    'message' => 'Số điện thoại này đang có lịch hẹn pending/confirmed. Vui lòng hoàn tất hoặc huỷ lịch cũ trước khi đặt thêm.',
+                ], 429);
             }
 
-            // ✅ CHẶN TRÙNG SLOT THEO THỢ + TIME RANGE
+            /**
+             * Chặn trùng slot theo stylist + khoảng thời gian
+             */
             $overlap = Booking::query()
                 ->where('stylist_id', $data['stylist_id'])
                 ->whereIn('status', ['pending', 'confirmed'])
@@ -139,40 +185,69 @@ class BookingController extends Controller
                 ->exists();
 
             if ($overlap) {
-                abort(409, 'Khung giờ này không còn trống theo thời lượng bạn chọn. Vui lòng chọn giờ khác.');
+                return response()->json([
+                    'message' => 'Khung giờ này không còn trống theo thời lượng bạn chọn. Vui lòng chọn giờ khác.',
+                ], 409);
             }
 
-            $code = $this->generateBookingCode();
+            $bookingCode = $this->generateBookingCode();
+            $lookupCode = $this->generateLookupCode();
 
-            return Booking::create([
-                'booking_code'   => $code,
-                'customer_name'  => $data['customer_name'],
+            // Tạo booking
+            $booking = Booking::create([
+                'booking_code' => $bookingCode,
+                'lookup_code' => $lookupCode,
+                'lookup_code_sent_at' => null,
+
+                'customer_name' => $data['customer_name'],
                 'customer_phone' => $data['customer_phone'],
+                'customer_email' => $data['customer_email'],
 
-                'service_id'     => $firstServiceId,
-                'service_name'   => $serviceName,
+                // Giữ lại để tương thích dữ liệu/admin cũ
+                'service_id' => $firstServiceId,
+                'service_name' => $serviceName,
 
-                'stylist_id'     => $stylist->id,
-                'stylist_name'   => $stylist->name,
+                'stylist_id' => $stylist->id,
+                'stylist_name' => $stylist->name,
 
-                'booking_date'   => $data['booking_date'],
-                'booking_time'   => $data['booking_time'],
-
-                'start_at'           => $startAt,
-                'end_at'             => $endAt,
+                'booking_date' => $data['booking_date'],
+                'booking_time' => $data['booking_time'],
+                'start_at' => $startAt,
+                'end_at' => $endAt,
                 'total_duration_min' => $totalDuration,
 
-                'notes'          => $data['notes'] ?? null,
-                'status'         => 'pending',
-                'total_price'    => $totalPrice,
+                'notes' => $data['notes'] ?? null,
+                'status' => 'pending',
+                'total_price' => $totalPrice,
             ]);
+
+            // Lưu chi tiết nhiều dịch vụ vào bảng booking_service
+            $booking->services()->attach(
+                $serviceRows->mapWithKeys(function ($service) {
+                    return [
+                        $service->id => [
+                            'service_name' => $service->name,
+                            'price' => (int) $service->price,
+                            'duration_min' => (int) $service->duration_min,
+                        ],
+                    ];
+                })->toArray()
+            );
+
+            return $booking;
         });
+
+        // Nếu transaction bên trong trả response lỗi thì return luôn
+        if ($booking instanceof \Illuminate\Http\JsonResponse) {
+            return $booking;
+        }
 
         return response()->json([
             'ok' => true,
+            'message' => 'Đặt lịch thành công. Vui lòng chờ xác nhận từ Barbery.',
             'data' => [
                 'id' => $booking->id,
-                'booking_code' => $booking->booking_code,
+                'status' => $booking->status,
                 'start_at' => $booking->start_at?->toIso8601String(),
                 'end_at' => $booking->end_at?->toIso8601String(),
                 'total_duration_min' => $booking->total_duration_min,
@@ -180,11 +255,10 @@ class BookingController extends Controller
         ], 201);
     }
 
-    private function generateBookingCode(): string
-    {
-        return 'BK' . strtoupper(Str::random(6));
-    }
-
+    /**
+     * API tra cứu booking
+     * Hiện cho tra theo booking_code hoặc số điện thoại
+     */
     public function lookup(Request $request)
     {
         $data = $request->validate([
@@ -193,7 +267,7 @@ class BookingController extends Controller
 
         $q = trim($data['q']);
         $qNoSpace = preg_replace('/\s+/', '', $q);
-        $qPhone   = $this->normalizePhone($qNoSpace);
+        $qPhone = $this->normalizePhone($qNoSpace);
 
         $results = Booking::query()
             ->where(function ($query) use ($q, $qPhone) {
@@ -205,23 +279,29 @@ class BookingController extends Controller
             ->limit(20)
             ->get();
 
-        return response()->json(['ok' => true, 'data' => $results]);
+        return response()->json([
+            'ok' => true,
+            'data' => $results,
+        ]);
     }
 
+    /**
+     * API lấy giờ trống theo stylist + ngày + tổng duration
+     */
     public function availableSlots(Request $request)
     {
         $data = $request->validate([
             'stylist_id' => ['required', 'integer', 'exists:stylists,id'],
-            'date'       => ['required', 'date_format:Y-m-d'],
-            'duration'   => ['required', 'integer', 'min:15', 'max:480'],
+            'date' => ['required', 'date_format:Y-m-d'],
+            'duration' => ['required', 'integer', 'min:15', 'max:480'],
         ]);
 
         $stylistId = (int) $data['stylist_id'];
-        $date      = $data['date'];
-        $duration  = (int) $data['duration'];
+        $date = $data['date'];
+        $duration = (int) $data['duration'];
 
-        $open  = Carbon::createFromFormat('Y-m-d H:i', $date . ' 08:00');
-        $close = Carbon::createFromFormat('Y-m-d H:i', $date . ' 21:00');
+        $open = Carbon::createFromFormat('Y-m-d H:i', $date . ' 08:00');
+        $close = Carbon::createFromFormat('Y-m-d H:i', $date . ' 20:00');
 
         $bookings = Booking::query()
             ->where('stylist_id', $stylistId)
@@ -235,12 +315,14 @@ class BookingController extends Controller
 
         for ($t = $open->copy(); $t->lt($close); $t->addMinutes(30)) {
             $slotStart = $t->copy();
-            $slotEnd   = $t->copy()->addMinutes($duration);
+            $slotEnd = $t->copy()->addMinutes($duration);
 
-            if ($slotEnd->gt($close)) continue;
+            if ($slotEnd->gt($close)) {
+                continue;
+            }
 
-            $overlap = $bookings->contains(function ($b) use ($slotStart, $slotEnd) {
-                return $slotStart->lt($b->end_at) && $slotEnd->gt($b->start_at);
+            $overlap = $bookings->contains(function ($booking) use ($slotStart, $slotEnd) {
+                return $slotStart->lt($booking->end_at) && $slotEnd->gt($booking->start_at);
             });
 
             if (!$overlap) {
@@ -250,8 +332,11 @@ class BookingController extends Controller
 
         return response()->json([
             'ok' => true,
-            'data' => $slots, // để JS đơn giản
-            'meta' => ['date' => $date, 'duration' => $duration],
+            'data' => $slots,
+            'meta' => [
+                'date' => $date,
+                'duration' => $duration,
+            ],
         ]);
     }
 }

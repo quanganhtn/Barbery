@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\BookingActionController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\CatalogApiController;
+use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\HairstyleController;
 use App\Http\Controllers\SiteController;
 use Illuminate\Support\Facades\Route;
 use TCG\Voyager\Facades\Voyager;
@@ -53,3 +55,9 @@ Route::prefix('api')->group(function () {
     //tự ẩn slot bị chiếm
     Route::get('/available-slots', [BookingController::class, 'availableSlots'])->name('api.availableSlots');
 });
+
+
+Route::get('/hairstyle/suggest', [HairstyleController::class, 'index'])->name('hairstyle.index');
+Route::post('/hairstyle/analyze', [HairstyleController::class, 'analyze'])->name('hairstyle.analyze');
+
+Route::post('/chatbot/send', [ChatbotController::class, 'send'])->name('chatbot.send');

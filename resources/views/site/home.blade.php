@@ -61,26 +61,38 @@
                         {{ setting('home.hero_desc', 'Trải nghiệm dịch vụ cắt tóc nam cao cấp với đội ngũ stylist chuyên nghiệp. Đặt lịch online, không cần chờ đợi.') }}
                     </p>
 
-                    <div class="flex flex-wrap gap-4">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl">
                         <a href="{{ route('site.booking') }}"
-                            class="gradient-gold text-black px-8 py-4 rounded-full text-lg font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 pulse-gold">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="gradient-gold text-black h-16 rounded-full text-lg font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 pulse-gold w-full">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            {{ setting('home.cta_booking', 'Đặt lịch ngay') }}
+                            <span>{{ setting('home.cta_booking', 'Đặt lịch ngay') }}</span>
                         </a>
 
                         <a href="tel:{{ preg_replace('/\s+/', '', setting('site.phone', '0909123456')) }}"
-                            class="border-2 border-gold text-gold px-8 py-4 rounded-full text-lg font-semibold hover:bg-gold hover:text-black transition-all flex items-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="border-2 border-gold text-gold h-16 rounded-full text-lg font-semibold hover:bg-gold hover:text-black transition-all flex items-center justify-center gap-2 w-full">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
-                            {{ setting('home.cta_call', 'Gọi nhanh') }}
+                            <span>{{ setting('home.cta_call', 'Gọi nhanh') }}</span>
+                        </a>
+
+                        <a href="{{ route('hairstyle.index') }}"
+                            class="border-2 border-gold text-gold h-16 rounded-full text-lg font-semibold hover:bg-gold hover:text-black transition-all flex items-center justify-center gap-2 w-full">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.868v4.264a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Gợi ý kiểu tóc</span>
+
                         </a>
                     </div>
-
                     <div class="flex items-center gap-8 mt-12">
                         <div class="text-center">
                             <div class="text-3xl font-bold text-gold">{{ setting('site.total_customers', '5000') }}+</div>
@@ -167,7 +179,8 @@
                                             @if (!empty($sv->desc))
                                                 <div class="text-xs text-gray-500">{{ $sv->desc }}</div>
                                             @else
-                                                <div class="text-xs text-gray-500">~{{ (int) $sv->duration }} phút</div>
+                                                <div class="text-xs text-gray-500">~{{ (int) $sv->duration_min }} phút
+                                                </div>
                                             @endif
                                         </div>
 
@@ -438,3 +451,5 @@
             </div>
         </div>
     </section>
+
+@endsection
