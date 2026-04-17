@@ -26,8 +26,22 @@ async function loadCatalog() {
         fetch(window.Barbery.routes.stylists, { headers: { Accept: "application/json" } }),
     ]);
 
-    const sJson = await sRes.json().catch(() => ({}));
-    const stJson = await stRes.json().catch(() => ({}));
+    async function fetchJson(url, opts = {}) {
+        try {
+            const res = await fetch(url, {
+                headers: { Accept: "application/json", ...(opts.headers || {}) },
+                ...opts,
+            });
+            const json = await res.json();
+            if (!res.ok || !json?.ok) {
+                throw new Error("Không lấy được dữ liệu");
+            }
+            return { res, json };
+        } catch (error) {
+            console.error("Error fetching data: ", error);
+            throw error;
+        }
+    }
 
     if (!sRes.ok || sJson?.ok === false) {
         console.warn("services api error", sRes.status, sJson);

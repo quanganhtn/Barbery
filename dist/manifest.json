@@ -1,0 +1,19 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-BJiPTVhF.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-DeeJxc4u.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/barbery.js": {
+    "file": "assets/barbery-babJS4_6.js",
+    "name": "barbery",
+    "src": "resources/js/barbery.js",
+    "isEntry": true
+  }
+}
