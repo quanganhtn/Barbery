@@ -14,48 +14,100 @@ function $(id) {
 let services = [];
 let stylists = [];
 
+// async function loadCatalog() {
+//     // Guard: routes phải tồn tại
+//     if (!window.Barbery?.routes?.services || !window.Barbery?.routes?.stylists) {
+//         console.error("window.Barbery.routes missing", window.Barbery);
+//         throw new Error("Missing Barbery routes");
+//     }
+//     const [sRes, stRes] = await Promise.all([
+//         fetch(window.Barbery.routes.services, { headers: { Accept: "application/json" } }),
+//         fetch(window.Barbery.routes.stylists, { headers: { Accept: "application/json" } }),
+//     ]);
+//     async function fetchJson(url, opts = {}) {
+//         try {
+//             const res = await fetch(url, {
+//                 headers: { Accept: "application/json", ...(opts.headers || {}) },
+//                 ...opts,
+//             });
+//             const json = await res.json();
+//             if (!res.ok || !json?.ok) {
+//                 throw new Error("Không lấy được dữ liệu");
+//             }
+//             return { res, json };
+//         } catch (error) {
+//             console.error("Error fetching data: ", error);
+//             throw error;
+//         }
+//     }
+//     if (!sRes.ok || sJson?.ok === false) {
+//         console.warn("services api error", sRes.status, sJson);
+//         throw new Error(sJson?.message || "Không tải được danh sách dịch vụ");
+//     }
+//     if (!stRes.ok || stJson?.ok === false) {
+//         console.warn("stylists api error", stRes.status, stJson);
+//         throw new Error(stJson?.message || "Không tải được danh sách thợ cắt");
+//     }
+//     const sList = Array.isArray(sJson?.data) ? sJson.data : [];
+//     const stList = Array.isArray(stJson?.data) ? stJson.data : [];
+//     // NOTE: duration_min là nguồn chính để tính tổng thời gian.
+//     services = sList.map((x) => ({
+//         id: x.id,
+//         name: x.name,
+//         price: Number(x.price || 0),
+//         duration_min: Number(x.duration_min || 30),
+//         icon: x.icon || "⭐",
+//     }));
+//     function getInitials(name) {
+//         name = (name || "").trim();
+//         if (!name) return "B";
+//         const parts = name.split(/\s+/);
+//         const first = parts[0]?.[0] || "";
+//         const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+//         return (first + last).toUpperCase();
+//     }
+//     stylists = stList.map((x) => ({
+//         id: x.id,
+//         name: x.name,
+//         role: x.role || "Stylist",
+//         exp: Number(x.exp || 0),
+//         rating: Number(x.rating || 0),
+//         specialty: x.specialty
+//             ? String(x.specialty).split(",").map((t) => t.trim()).filter(Boolean)
+//             : [],
+//         status: x.status || "available",
+//         // NEW:
+//         avatar_url: x.avatar_url ? String(x.avatar_url) : null,
+//         initials: getInitials(x.name),
+//     }));
+// }
 async function loadCatalog() {
-    // Guard: routes phải tồn tại
     if (!window.Barbery?.routes?.services || !window.Barbery?.routes?.stylists) {
-        console.error("window.Barbery.routes missing", window.Barbery);
         throw new Error("Missing Barbery routes");
     }
 
-    const [sRes, stRes] = await Promise.all([
-        fetch(window.Barbery.routes.services, { headers: { Accept: "application/json" } }),
-        fetch(window.Barbery.routes.stylists, { headers: { Accept: "application/json" } }),
+    async function fetchJson(url) {
+        const res = await fetch(url, {
+            headers: { Accept: "application/json" }
+        });
+
+        const json = await res.json();
+
+        if (!res.ok || !json?.ok) {
+            throw new Error(json?.message || "Không lấy được dữ liệu");
+        }
+
+        return json;
+    }
+
+    const [sJson, stJson] = await Promise.all([
+        fetchJson(window.Barbery.routes.services),
+        fetchJson(window.Barbery.routes.stylists),
     ]);
 
-    async function fetchJson(url, opts = {}) {
-        try {
-            const res = await fetch(url, {
-                headers: { Accept: "application/json", ...(opts.headers || {}) },
-                ...opts,
-            });
-            const json = await res.json();
-            if (!res.ok || !json?.ok) {
-                throw new Error("Không lấy được dữ liệu");
-            }
-            return { res, json };
-        } catch (error) {
-            console.error("Error fetching data: ", error);
-            throw error;
-        }
-    }
+    const sList = Array.isArray(sJson.data) ? sJson.data : [];
+    const stList = Array.isArray(stJson.data) ? stJson.data : [];
 
-    if (!sRes.ok || sJson?.ok === false) {
-        console.warn("services api error", sRes.status, sJson);
-        throw new Error(sJson?.message || "Không tải được danh sách dịch vụ");
-    }
-    if (!stRes.ok || stJson?.ok === false) {
-        console.warn("stylists api error", stRes.status, stJson);
-        throw new Error(stJson?.message || "Không tải được danh sách thợ cắt");
-    }
-
-    const sList = Array.isArray(sJson?.data) ? sJson.data : [];
-    const stList = Array.isArray(stJson?.data) ? stJson.data : [];
-
-    // NOTE: duration_min là nguồn chính để tính tổng thời gian.
     services = sList.map((x) => ({
         id: x.id,
         name: x.name,
@@ -83,14 +135,10 @@ async function loadCatalog() {
             ? String(x.specialty).split(",").map((t) => t.trim()).filter(Boolean)
             : [],
         status: x.status || "available",
-
-        // NEW:
         avatar_url: x.avatar_url ? String(x.avatar_url) : null,
         initials: getInitials(x.name),
     }));
-
 }
-
 // ===== LEGACY TIME SLOTS (không còn dùng để render UI, chỉ giữ để reference) =====
 const timeSlots = [
     "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",

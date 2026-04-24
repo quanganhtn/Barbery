@@ -32,6 +32,7 @@ COPY . /var/www
 
 # Laravel
 RUN composer install --no-dev --optimize-autoloader
+RUN php artisan vendor:publish --provider="TCG\\Voyager\\VoyagerServiceProvider" --tag=public --force || true
 
 # 🔥 FRONTEND (QUAN TRỌNG)
 RUN rm -f public/hot

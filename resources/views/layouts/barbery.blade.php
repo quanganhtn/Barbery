@@ -21,14 +21,24 @@
 
     @stack('head')
     <script>
+        // window.Barbery = {
+        //     routes: {
+        //         services: "{{ url('/api/services') }}",
+        //         stylists: "{{ url('/api/stylists') }}",
+        //         createBooking: "{{ url('/api/bookings') }}",
+        //         bookedSlots: "{{ url('/api/booked-slots') }}",
+        //         lookup: "{{ url('/api/lookup') }}",
+        //         availableSlots: "{{ route('api.availableSlots') }}",
+        //     }
+        // };
         window.Barbery = {
             routes: {
-                services: "{{ url('/api/services') }}",
-                stylists: "{{ url('/api/stylists') }}",
-                createBooking: "{{ url('/api/bookings') }}",
-                bookedSlots: "{{ url('/api/booked-slots') }}",
-                lookup: "{{ url('/api/lookup') }}",
-                availableSlots: "{{ route('api.availableSlots') }}",
+                services: "/api/services",
+                stylists: "/api/stylists",
+                createBooking: "/api/bookings",
+                bookedSlots: "/api/booked-slots",
+                lookup: "/api/lookup",
+                availableSlots: "/api/available-slots",
             }
         };
     </script>
