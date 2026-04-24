@@ -34,11 +34,11 @@ RUN composer install --no-dev --optimize-autoloader
 
 RUN if [ -f package.json ]; then npm install && npm run build; fi
 
-RUN pip3 install --no-cache-dir -r barbery_ai/requirements.txt
+RUN pip3 install --break-system-packages --no-cache-dir -r barbery_ai/requirements.txt
 
 RUN chmod +x /var/www/start.sh
 RUN chmod -R 775 storage bootstrap/cache || true
-
+RUN mkdir -p database && touch database/database.sqlite
 EXPOSE 10000
 
 CMD ["/var/www/start.sh"]
