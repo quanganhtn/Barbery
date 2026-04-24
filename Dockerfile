@@ -34,6 +34,7 @@ COPY . /var/www
 RUN composer install --no-dev --optimize-autoloader
 
 # 🔥 FRONTEND (QUAN TRỌNG)
+RUN rm -f public/hot
 RUN npm install
 RUN npm run build
 
