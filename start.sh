@@ -1,7 +1,9 @@
 #!/bin/sh
 
 echo "Start AI service..."
-python3 -m uvicorn barbery_ai.main:app --host 0.0.0.0 --port 8001 &
+python3 -m uvicorn barbery_ai.main:app --host 127.0.0.1 --port 8001 &
+
+sleep 5
 
 echo "Prepare Laravel..."
 php artisan key:generate --force || true
