@@ -405,7 +405,7 @@
             submitBtn.textContent = 'Đang phân tích...';
 
             try {
-                const res = await fetch('{{ route('hairstyle.analyze') }}', {
+                const res = await fetch('/hairstyle/analyze', { //fetch('{{ route('hairstyle.analyze') }}', {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,

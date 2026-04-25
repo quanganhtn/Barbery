@@ -619,20 +619,28 @@ window.updateSummary = updateSummary;
 // SUBMIT BOOKING
 // =========================================================
 window.submitBooking = async function () {
+    console.log("=== SUBMIT BOOKING START ===");
+
     // Lấy dữ liệu từ form
     const name = $("customer-name").value.trim();
     const phone = normalizePhone($("customer-phone").value.trim());
     const email = $("customer-email").value.trim();
     const notes = $("customer-notes").value.trim();
 
+    console.log("Form data:", { name, phone, email, notes });
+
     // Validate phía client
     if (!name || !phone || !email) {
+        console.warn("❌ Thiếu thông tin khách");
         showToast("Vui lòng nhập họ tên, số điện thoại và email", "error");
         return;
     }
 
-    // Kiểm tra dữ liệu booking đã chọn đủ chưa
+    // Kiểm tra bookingData
+    console.log("Booking data:", bookingData);
+
     if (!bookingData.services?.length || !bookingData.stylist || !bookingData.date || !bookingData.time) {
+        console.warn("❌ Thiếu thông tin booking");
         showToast("Thiếu thông tin đặt lịch", "error");
         return;
     }
@@ -640,6 +648,8 @@ window.submitBooking = async function () {
     showLoading(true);
 
     try {
+        console.log("🚀 Gửi request đến:", window.Barbery.routes.createBooking);
+
         const res = await fetch(window.Barbery.routes.createBooking, {
             method: "POST",
             headers: {
@@ -648,12 +658,9 @@ window.submitBooking = async function () {
                 "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
             },
             body: JSON.stringify({
-                // Thông tin khách
                 customer_name: name,
                 customer_phone: phone,
                 customer_email: email,
-
-                // Thông tin booking
                 service_ids: bookingData.services.map((s) => s.id),
                 stylist_id: bookingData.stylist.id,
                 booking_date: bookingData.date,
@@ -662,26 +669,49 @@ window.submitBooking = async function () {
             }),
         });
 
-        const json = await res.json().catch(() => ({}));
+        console.log("📥 Response status:", res.status);
+
+        // đọc text trước để debug
+        const text = await res.text();
+        console.log("📦 Raw response:", text);
+
+        let json = {};
+        try {
+            json = JSON.parse(text);
+        } catch (e) {
+            console.error("❌ Không parse được JSON:", e);
+        }
+
         showLoading(false);
 
         if (!res.ok) {
+            console.error("❌ Server trả lỗi:", json);
             showToast(json.message || "Lỗi đặt lịch", "error");
             return;
         }
 
-        // Ẩn các step và hiện màn hình thành công
+        console.log("✅ Booking success:", json);
+
+        // UI success
         document.querySelectorAll(".booking-step").forEach((s) => s.classList.add("hidden"));
         $("booking-success").classList.remove("hidden");
 
-        // Hiển thị mã đặt lịch
-        $("booking-code-display").textContent = json.data.booking_code;
+        $("booking-code-display").textContent = json.data?.booking_code || "N/A";
 
         showToast("Đặt lịch thành công!");
     } catch (error) {
         showLoading(false);
+
+        console.error("🔥 FETCH ERROR:", error);
+
+        if (error instanceof TypeError) {
+            console.error("👉 Có thể do sai URL hoặc server chưa chạy");
+        }
+
         showToast("Không kết nối được server", "error");
     }
+
+    console.log("=== SUBMIT BOOKING END ===");
 };
 
 // =========================================================
