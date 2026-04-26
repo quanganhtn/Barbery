@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\BookingActionController;
+use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\CatalogApiController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\HairstyleController;
 use App\Http\Controllers\SiteController;
@@ -35,6 +37,22 @@ Route::group(['prefix' => 'admin', 'middleware' => ['admin.user']], function () 
 
     Route::match(['GET', 'POST'], 'bookings/{id}/complete', [BookingActionController::class, 'complete'])
         ->name('admin.bookings.action.complete');
+});
+
+// ===== API =====
+Route::prefix('api')->group(function () {
+    //danh sách dịch vụ
+    Route::get('/services', [CatalogApiController::class, 'services'])->name('api.services');
+    //danh sách thợ
+    Route::get('/stylists', [CatalogApiController::class, 'stylists'])->name('api.stylists');
+    //khung giờ đã có ngươì đặt
+    Route::get('/booked-slots', [BookingController::class, 'bookedSlots'])->name('api.bookings.bookedSlots');
+    //tạo lịch đặt mới
+    Route::post('/bookings', [BookingController::class, 'store'])->name('api.bookings.store');
+    //tra cứu lich
+    Route::get('/lookup', [BookingController::class, 'lookup'])->name('api.lookup');
+    //tự ẩn slot bị chiếm
+    Route::get('/available-slots', [BookingController::class, 'availableSlots'])->name('api.availableSlots');
 });
 
 Route::get('/hairstyle/suggest', [HairstyleController::class, 'index'])->name('hairstyle.index');
