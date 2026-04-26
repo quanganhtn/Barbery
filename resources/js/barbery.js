@@ -692,11 +692,13 @@ window.submitBooking = async function () {
 
         console.log("✅ Booking success:", json);
 
-        // UI success
         document.querySelectorAll(".booking-step").forEach((s) => s.classList.add("hidden"));
-        $("booking-success").classList.remove("hidden");
+        $("booking-success")?.classList.remove("hidden");
 
-        $("booking-code-display").textContent = json.data?.booking_code || "N/A";
+        const codeEl = $("booking-code-display");
+        if (codeEl) {
+            codeEl.textContent = json.data?.booking_code || "N/A";
+        }
 
         showToast("Đặt lịch thành công!");
     } catch (error) {
@@ -708,7 +710,7 @@ window.submitBooking = async function () {
             console.error("👉 Có thể do sai URL hoặc server chưa chạy");
         }
 
-        showToast("Không kết nối được server", "error");
+        showToast("Có lỗi xảy ra, vui lòng thử lại", "error");
     }
 
     console.log("=== SUBMIT BOOKING END ===");
