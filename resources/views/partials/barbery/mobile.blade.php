@@ -1,11 +1,12 @@
-<div id="mobile-overlay" class="overlay hidden fixed inset-0 bg-black/60 z-40 lg:hidden" onclick="toggleMobileMenu()">
+<div id="mobile-overlay" class="hidden fixed inset-0 bg-black/60 z-[9998] lg:hidden" onclick="toggleMobileMenu()">
 </div>
 
-<div id="mobile-menu" class="mobile-menu fixed top-0 left-0 bottom-0 w-72 bg-dark z-50 lg:hidden">
+<div id="mobile-menu"
+    class="fixed top-0 left-0 bottom-0 w-72 bg-dark z-[9999] lg:hidden -translate-x-full transition-transform duration-300">
     <div class="p-6">
         <div class="flex items-center justify-between mb-8">
             <span class="font-display text-xl font-bold text-gold">Menu</span>
-            <button onclick="toggleMobileMenu()" class="p-2 text-gray-400">
+            <button onclick="toggleMobileMenu()" class="relative z-[10000] p-2 lg:hidden">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>

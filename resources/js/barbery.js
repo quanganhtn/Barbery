@@ -235,8 +235,12 @@ function canLoadSlots() {
 
 // ===== MOBILE MENU =====
 window.toggleMobileMenu = function () {
-    $("mobile-menu")?.classList.toggle("open");
-    $("mobile-overlay")?.classList.toggle("open");
+    const menu = $("mobile-menu");
+    const overlay = $("mobile-overlay");
+
+    menu?.classList.toggle("-translate-x-full");
+
+    overlay?.classList.toggle("hidden");
 };
 
 // =========================================================
