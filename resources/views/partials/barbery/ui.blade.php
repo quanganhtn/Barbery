@@ -13,7 +13,7 @@
 <div id="toast-container" class="fixed top-20 right-4 z-50 space-y-2"></div>
 
 {{-- Loading Overlay --}}
-<div id="loading-overlay" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+<div id="loading-overlay" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center">
     <div class="bg-dark rounded-2xl p-8 flex flex-col items-center border border-gray-800">
         <div class="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin mb-4"></div>
         <p class="text-white">Đang xử lý...</p>

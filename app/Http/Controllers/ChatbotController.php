@@ -48,17 +48,24 @@ class ChatbotController extends Controller
      */
     private function getReply(string $message): string
     {
-        // Định nghĩa các câu hỏi và câu trả lời
         $faq = [
-            'greeting' => ['xin chào', 'chào', 'hello', 'hi', 'shop ơi', 'barbery ơi'],
-            'opening_hours' => ['mở cửa', 'giờ mở cửa', 'làm việc', 'đóng cửa', 'mấy giờ', 'giờ'],
-            'booking' => ['đặt lịch', 'booking', 'hẹn lịch', 'muốn đặt lịch'],
-            'services' => ['dịch vụ', 'cắt tóc', 'gội đầu', 'cạo mặt', 'combo', 'giá'],
-            'stylist' => ['stylist', 'thợ cắt', 'chọn thợ', 'chọn người cắt'],
-            'lookup' => ['tra cứu', 'xem lịch', 'kiểm tra lịch', 'lịch hẹn'],
-            'cancel_change' => ['hủy lịch', 'đổi lịch', 'đổi giờ', 'đổi lịch'],
-            'hairstyle_ai' => ['gợi ý kiểu tóc', 'kiểu tóc', 'ai', 'phân tích khuôn mặt', 'tải ảnh'],
-            'support' => ['tư vấn', 'nhân viên', 'liên hệ', 'hỗ trợ'],
+            'greeting' => ['xin chào', 'chào', 'barbery ơi', 'xin chao', 'chao', 'hello', 'hi', 'shop oi', 'barbery oi'],
+
+            'opening_hours' => ['mở cửa', 'giờ mở cửa', 'làm việc', 'đóng cửa', 'mấy giờ', 'giờ', 'mở lúc nào', 'mo cua', 'gio mo cua', 'lam viec', 'dong cua', 'may gio', 'gio', 'mo luc nao'],
+
+            'booking' => ['đặt lịch', 'booking', 'hẹn lịch', 'muốn đặt', 'đăng ký lịch', 'dat lich', 'hen lich', 'muon dat', 'dang ky lich', 'book lich', 'book'],
+
+            'services' => ['dịch vụ', 'cắt tóc', 'gội đầu', 'cạo mặt', 'giá', 'bảng giá', 'bao nhiêu tiền', 'dich vu', 'cat toc', 'goi dau', 'cao mat', 'combo', 'gia', 'bang gia', 'bao nhieu tien'],
+
+            'stylist' => ['stylist', 'thợ cắt', 'chọn thợ', 'người cắt', 'ai cắt', 'tho cat', 'chon tho', 'nguoi cat', 'ai cat'],
+
+            'lookup' => ['tra cứu', 'xem lịch', 'kiểm tra lịch', 'lịch hẹn', 'mã đặt lịch', 'tra cuu', 'xem lich', 'kiem tra lich', 'lich hen', 'ma dat lich'],
+
+            'cancel_change' => ['hủy lịch', 'đổi lịch', 'đổi giờ', 'thay đổi lịch', 'huy lich', 'doi lich', 'doi gio', 'thay doi lich'],
+
+            'hairstyle_ai' => ['gợi ý kiểu tóc', 'kiểu tóc', 'ai', 'phân tích khuôn mặt', 'tải ảnh', 'goi y kieu toc', 'kieu toc', 'AI', 'phan tich khuon mat', 'tai anh'],
+
+            'support' => ['tư vấn', 'nhân viên', 'liên hệ', 'hỗ trợ', 'tu van', 'nhan vien', 'lien he', 'ho tro', 'hotline'],
         ];
 
         // Kiểm tra các từ khóa và trả lời phù hợp
@@ -84,7 +91,7 @@ class ChatbotController extends Controller
                 return 'Xin chào! Mình là trợ lý Barbery. Mình có thể giúp bạn đặt lịch, tư vấn dịch vụ, hoặc gợi ý kiểu tóc.';
 
             case 'opening_hours':
-                return 'Barbery mở cửa từ 8:00 đến 21:00 mỗi ngày. Bạn có thể đặt lịch trực tuyến hoặc gọi điện để đặt lịch.';
+                return 'Barbery mở cửa từ 8:00 đến 20:00 mỗi ngày. Bạn có thể đặt lịch trực tuyến hoặc gọi điện để đặt lịch.';
 
             case 'booking':
                 return 'Để đặt lịch, bạn chỉ cần chọn dịch vụ, thợ cắt tóc, ngày và giờ. Sau đó xác nhận lịch để hoàn tất.';

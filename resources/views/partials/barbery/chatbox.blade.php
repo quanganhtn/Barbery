@@ -40,6 +40,24 @@
         </div>
 
         <div class="p-4 border-t border-white/10 bg-[#0b1220]">
+
+            <div id="chat-suggestions" class="mb-3 space-y-2">
+                <button type="button"
+                    class="chat-suggestion w-full text-left rounded-xl bg-white/10 hover:bg-white/15 text-gray-200 px-4 py-2 text-sm transition">
+                    Barbery có những dịch vụ nào?
+                </button>
+
+                <button type="button"
+                    class="chat-suggestion w-full text-left rounded-xl bg-white/10 hover:bg-white/15 text-gray-200 px-4 py-2 text-sm transition">
+                    Tôi muốn đặt lịch cắt tóc
+                </button>
+
+                <button type="button"
+                    class="chat-suggestion w-full text-left rounded-xl bg-white/10 hover:bg-white/15 text-gray-200 px-4 py-2 text-sm transition">
+                    Làm sao để tra cứu lịch hẹn?
+                </button>
+            </div>
+
             <div class="flex gap-2">
                 <input id="chat-input" type="text"
                     class="flex-1 rounded-2xl border border-white/10 bg-white/5 text-white px-4 py-3 outline-none focus:border-gold placeholder:text-gray-500"
@@ -62,6 +80,7 @@
         const input = document.getElementById('chat-input');
         const sendBtn = document.getElementById('chat-send');
         const box = document.getElementById('chat-box');
+        const suggestions = document.querySelectorAll('.chat-suggestion');
 
         function escapeHtml(str) {
             return String(str).replace(/[&<>"']/g, function(m) {
@@ -107,35 +126,36 @@
         }
 
         function appendBotMessage(message) {
-            box.innerHTML += `
-                <div class="flex justify-start">
-                    <div class="max-w-[85%] rounded-2xl rounded-bl-md bg-white/10 text-gray-200 px-4 py-3 break-words whitespace-pre-line">
-                        ${escapeHtml(message)}
+            box.innerHTML += `<div class = "flex justify-start" >
+                    <div class =
+                    "max-w-[85%] rounded-2xl rounded-bl-md bg-white/10 text-gray-200 px-4 py-3 break-words whitespace-pre-line" >
+                    ${escapeHtml(message)}
                     </div>
                 </div>
-            `;
+                `;
             box.scrollTop = box.scrollHeight;
         }
 
         function appendErrorMessage(message) {
-            box.innerHTML += `
-                <div class="flex justify-start">
-                    <div class="max-w-[85%] rounded-2xl rounded-bl-md bg-red-500/20 text-red-200 px-4 py-3 break-words">
-                        ${escapeHtml(message)}
+            box.innerHTML += ` <div class = "flex justify-start" >
+                    <div class =
+                    "max-w-[85%] rounded-2xl rounded-bl-md bg-red-500/20 text-red-200 px-4 py-3 break-words" >
+                    ${escapeHtml(message)}
                     </div>
                 </div>
-            `;
+                `;
             box.scrollTop = box.scrollHeight;
         }
 
         function appendLoading() {
             box.innerHTML += `
-                <div id="chat-loading" class="flex justify-start">
-                    <div class="max-w-[85%] rounded-2xl rounded-bl-md bg-white/10 text-gray-300 px-4 py-3">
-                        Đang trả lời...
+            <div id = "chat-loading"
+                class = "flex justify-start">
+                <div class = "max-w-[85%] rounded-2xl rounded-bl-md bg-white/10 text-gray-300 px-4 py-3" >
+                Đang trả lời...
                     </div>
-                </div>
-            `;
+                    </div>
+                    `;
             box.scrollTop = box.scrollHeight;
         }
 
@@ -190,7 +210,12 @@
         toggleBtn.addEventListener('click', toggleChat);
         closeBtn.addEventListener('click', closeChat);
         sendBtn.addEventListener('click', sendMessage);
-
+        suggestions.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                input.value = btn.textContent.trim();
+                sendMessage();
+            });
+        });
         input.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();

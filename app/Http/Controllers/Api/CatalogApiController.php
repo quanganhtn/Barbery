@@ -13,8 +13,8 @@ class CatalogApiController extends Controller
     {
         $rows = Service::query()
             ->where('is_active', true)
+            ->orderBy('category_id')
             ->orderBy('sort_order')
-            ->orderBy('id')
             ->get(['id', 'code', 'name', 'price', 'duration_min', 'icon']);
 
         return response()->json(['ok' => true, 'data' => $rows]);

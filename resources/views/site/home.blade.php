@@ -46,7 +46,7 @@
                     <div class="inline-flex items-center gap-2 px-4 py-2 bg-gold/10 border border-gold/30 rounded-full mb-6">
                         <span class="w-2 h-2 bg-gold rounded-full animate-pulse"></span>
                         <span class="text-sm text-gold">
-                            Đang mở cửa • {{ setting('site.open_hours', '8:00 - 21:00') }}
+                            Mở cửa • {{ setting('site.open_hours', '8:00 - 21:00') }}
                         </span>
                     </div>
 
@@ -268,7 +268,7 @@
     <section id="gallery" class="py-20 bg-darker">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span class="text-gold text-sm font-semibold tracking-wider uppercase">Thư viện</span>
+                <span class="text-gold text-sm font-semibold tracking-wider uppercase">Các kiểu tóc Hot Trend</span>
                 <h2 class="font-display text-3xl sm:text-4xl font-bold text-white mt-4">
                     {{ setting('home.gallery_title', 'Tác phẩm nổi bật') }}
                 </h2>

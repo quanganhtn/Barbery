@@ -19,16 +19,20 @@
 
             {{-- Desktop Menu --}}
             <div class="hidden lg:flex items-center gap-8">
-                <a href="{{ route('site.home') }}#home"
-                    class="text-sm font-medium text-gray-300 hover:text-gold transition-colors">Trang chủ</a>
-                <a href="{{ route('site.home') }}#price"
-                    class="text-sm font-medium text-gray-300 hover:text-gold transition-colors">Bảng giá</a>
-                <a href="{{ route('site.home') }}#staff"
-                    class="text-sm font-medium text-gray-300 hover:text-gold transition-colors">Thợ cắt</a>
-                <a href="{{ route('site.home') }}#gallery"
-                    class="text-sm font-medium text-gray-300 hover:text-gold transition-colors">Thư viện</a>
-                <a href="{{ route('site.home') }}#contact"
-                    class="text-sm font-medium text-gray-300 hover:text-gold transition-colors">Liên hệ</a>
+                <a href="{{ route('site.home') }}#home" data-section="home"
+                    class="nav-link text-sm font-medium text-gray-300 hover:text-gold transition-colors">Trang chủ</a>
+
+                <a href="{{ route('site.home') }}#price" data-section="price"
+                    class="nav-link text-sm font-medium text-gray-300 hover:text-gold transition-colors">Bảng giá</a>
+
+                <a href="{{ route('site.home') }}#staff" data-section="staff"
+                    class="nav-link text-sm font-medium text-gray-300 hover:text-gold transition-colors">Thợ cắt</a>
+
+                <a href="{{ route('site.home') }}#gallery" data-section="gallery"
+                    class="nav-link text-sm font-medium text-gray-300 hover:text-gold transition-colors">Hot Trend</a>
+
+                <a href="{{ route('site.home') }}#contact" data-section="contact"
+                    class="nav-link text-sm font-medium text-gray-300 hover:text-gold transition-colors">Liên hệ</a>
             </div>
 
             {{-- CTA Buttons --}}

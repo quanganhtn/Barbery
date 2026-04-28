@@ -215,7 +215,9 @@ function showToast(message, type = "success") {
 function showLoading(show) {
     const el = $("loading-overlay");
     if (!el) return;
+
     el.classList.toggle("hidden", !show);
+    el.classList.toggle("flex", show);
 }
 
 async function fetchJson(url, opts = {}) {
@@ -807,4 +809,40 @@ document.addEventListener("DOMContentLoaded", async () => {
         showLoading(false);
         showToast(e?.message || "Lỗi tải dữ liệu", "error");
     }
+    // ===== NAV ACTIVE ON SCROLL =====
+    const navLinks = document.querySelectorAll(".nav-link[data-section]");
+    const scrollBox = document.getElementById("app") || window;
+
+    function setActiveNav() {
+        if (!navLinks.length) return;
+
+        let current = "home";
+
+        navLinks.forEach(link => {
+            const section = document.getElementById(link.dataset.section);
+            if (!section) return;
+
+            const top = section.getBoundingClientRect().top;
+
+            if (top <= 160) {
+                current = link.dataset.section;
+            }
+        });
+
+        navLinks.forEach(link => {
+            const isActive = link.dataset.section === current;
+
+            link.classList.toggle("text-gold", isActive);
+            link.classList.toggle("font-bold", isActive);
+            link.classList.toggle("text-gray-300", !isActive);
+        });
+    }
+
+    scrollBox.addEventListener("scroll", setActiveNav);
+    window.addEventListener("load", setActiveNav);
+    window.addEventListener("hashchange", () => {
+        setTimeout(setActiveNav, 200);
+    });
+
+    setTimeout(setActiveNav, 300);
 });
