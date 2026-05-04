@@ -13,25 +13,18 @@ use Illuminate\Support\Str;
 
 class BookingController extends Controller
 {
-    /**
-     * Chuẩn hóa số điện thoại:
-     * +84xxxxxxxxx hoặc 84xxxxxxxxx -> 0xxxxxxxxx
-     */
-    private function normalizePhone(string $value): string
+    private function normalizePhone(string $value): string // đổi số điện thoại về dạng chuẩn
     {
         $raw = preg_replace('/\s+/', '', $value);
         $normalized = preg_replace('/^\+?84/', '0', $raw);
         return $normalized;
     }
 
-    /**
-     * Validate số điện thoại Việt Nam cơ bản
-     */
-    private function validatePhoneOrFail(string $value, callable $fail): void
+    private function validatePhoneOrFail(string $value, callable $fail): void //kiểm tra tính hợp lệ
     {
         $phone = $this->normalizePhone($value);
 
-        if (!preg_match('/^\d+$/', $phone)) {
+        if (!preg_match('/^\d+$/', $phone)) { //phải là số
             $fail('Số điện thoại không hợp lệ.');
             return;
         }
@@ -53,38 +46,10 @@ class BookingController extends Controller
      */
     private function generateBookingCode(): string
     {
-        return 'BK' . strtoupper(Str::random(6));
-    }
-
-    /**
-     * Sinh mã tra cứu 6 số
-     * Ví dụ: 048231
-     */
-    private function generateLookupCode(): string
-    {
-        return str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-    }
-
-    /**
-     * API lấy các khung giờ đã bị chiếm theo stylist
-     */
-    public function bookedSlots(Request $request)
-    {
-        $data = $request->validate([
-            'date' => ['required', 'date_format:Y-m-d'],
-            'stylist_id' => ['required', 'integer', 'exists:stylists,id'],
-        ]);
-
-        $slots = Booking::query()
-            ->where('booking_date', $data['date'])
-            ->where('stylist_id', $data['stylist_id'])
-            ->whereIn('status', ['pending', 'confirmed'])
-            ->pluck('booking_time');
-
-        return response()->json([
-            'ok' => true,
-            'data' => $slots,
-        ]);
+        do {
+            $code = "BK" . strtoupper(Str::random(6));
+        } while (Booking::where('booking_code', $code)->exists()); //kiểm tra nếu trùng random lại
+        return $code;
     }
 
     /**
@@ -112,15 +77,23 @@ class BookingController extends Controller
             // Lịch hẹn
             'stylist_id' => ['required', 'integer', 'exists:stylists,id'],
             'booking_date' => ['required', 'date_format:Y-m-d'],
-            'booking_time' => ['required', 'string', 'max:10'],
+            'booking_time' => ['required', 'date_format:H:i'],
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
+
+        if ($data['booking_date'] <= now()->format('Y-m-d')) {
+            return response()->json([
+                'message' => 'Chỉ được đặt từ ngày mai.',
+            ], 422);
+        }
 
         // Chuẩn hóa số điện thoại trước khi query/lưu
         $data['customer_phone'] = $this->normalizePhone($data['customer_phone']);
 
+        //lấy Stylist
         $stylist = Stylist::findOrFail($data['stylist_id']);
 
+        //chọn dịch vụ
         $serviceRows = Service::query()
             ->whereIn('id', $data['service_ids'])
             ->get(['id', 'name', 'price', 'duration_min']);
@@ -133,10 +106,11 @@ class BookingController extends Controller
 
         // Tính toán thông tin booking
         $serviceName = $serviceRows->pluck('name')->join(', ');
-        $totalPrice = (int) $serviceRows->sum(fn($s) => (int) $s->price);
-        $totalDuration = (int) $serviceRows->sum(fn($s) => (int) $s->duration_min);
-        $firstServiceId = (int) $serviceRows->first()->id;
+        $totalPrice = (int) $serviceRows->sum(fn($s) => (int) $s->price); //tổng tiền
+        $totalDuration = (int) $serviceRows->sum(fn($s) => (int) $s->duration_min); //tổng tgian
+        $firstServiceId = (int) $serviceRows->first()->id; //lưu vào cột service_id
 
+        //tính thời gian
         $startAt = Carbon::createFromFormat('Y-m-d H:i', $data['booking_date'] . ' ' . $data['booking_time']);
         $endAt = $startAt->copy()->addMinutes($totalDuration);
 
@@ -191,13 +165,10 @@ class BookingController extends Controller
             }
 
             $bookingCode = $this->generateBookingCode();
-            $lookupCode = $this->generateLookupCode();
 
             // Tạo booking
             $booking = Booking::create([
                 'booking_code' => $bookingCode,
-                'lookup_code' => $lookupCode,
-                'lookup_code_sent_at' => null,
 
                 'customer_name' => $data['customer_name'],
                 'customer_phone' => $data['customer_phone'],
@@ -247,6 +218,7 @@ class BookingController extends Controller
             'message' => 'Đặt lịch thành công. Vui lòng chờ xác nhận từ Barbery.',
             'data' => [
                 'id' => $booking->id,
+                'booking_code' => $booking->booking_code,
                 'status' => $booking->status,
                 'start_at' => $booking->start_at?->toIso8601String(),
                 'end_at' => $booking->end_at?->toIso8601String(),
@@ -265,6 +237,7 @@ class BookingController extends Controller
             'q' => ['required', 'string', 'max:50'],
         ]);
 
+        // chuẩn hóa input
         $q = trim($data['q']);
         $qNoSpace = preg_replace('/\s+/', '', $q);
         $qPhone = $this->normalizePhone($qNoSpace);
@@ -303,6 +276,7 @@ class BookingController extends Controller
         $open = Carbon::createFromFormat('Y-m-d H:i', $date . ' 08:00');
         $close = Carbon::createFromFormat('Y-m-d H:i', $date . ' 20:00');
 
+        //lấy booking
         $bookings = Booking::query()
             ->where('stylist_id', $stylistId)
             ->whereIn('status', ['pending', 'confirmed'])
@@ -313,18 +287,22 @@ class BookingController extends Controller
 
         $slots = [];
 
+        //slot cách nhau 30p
         for ($t = $open->copy(); $t->lt($close); $t->addMinutes(30)) {
             $slotStart = $t->copy();
             $slotEnd = $t->copy()->addMinutes($duration);
 
+            //slot vượt quá giờ đóng cửa thì bỏ qua
             if ($slotEnd->gt($close)) {
                 continue;
             }
 
+            //kiểm tra trung lịch
             $overlap = $bookings->contains(function ($booking) use ($slotStart, $slotEnd) {
                 return $slotStart->lt($booking->end_at) && $slotEnd->gt($booking->start_at);
             });
 
+            //không trung thì hiện giờ trống
             if (!$overlap) {
                 $slots[] = $slotStart->format('H:i');
             }

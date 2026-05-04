@@ -11,27 +11,27 @@ class SiteController extends Controller
 {
     public function home()
     {
-        // 4 dịch vụ nổi bật (Hero bên phải)
+        // 4 dịch vụ nổi bật
         $featuredServices = Service::query()
-            ->where('is_active', 1)
-            ->where('is_featured', 1)
-            ->orderBy('sort_order')
+            ->where('is_active', 1) //dịch vụ đang bật
+            ->where('is_featured', 1) //dịch vụ đánh dấu nổi bật
+            ->orderBy('id')
             ->limit(4)
             ->get();
 
-        // Danh mục hiển thị bảng giá (3 cột)
+        // Danh mục hiển thị bảng giá
         $categories = ServiceCategory::query()
-            ->where('is_active', 1)
-            ->orderBy('sort_order')
-            ->limit(3) // nếu bạn muốn đúng 3 cột (giống UI)
+            ->where('is_active', 1) //dịch vụ đang bật
+            ->orderBy('id')
+            ->limit(3)
             ->get();
 
-        // Services theo category_id (chỉ lấy những service có category_id)
+        // Dịch vụ theo danh mục
         $servicesByCategory = Service::query()
             ->where('is_active', 1)
             ->whereNotNull('category_id') // tránh bị group null làm hỏng UI
-            ->orderBy('sort_order')
-            ->orderBy('price')
+            ->orderBy('category_id')
+            ->orderBy('id')
             ->get()
             ->groupBy('category_id');
 
@@ -39,13 +39,13 @@ class SiteController extends Controller
         //thợ cắt
         $stylists = Stylist::query()
             ->where('is_active', 1)
-            ->orderBy('sort_order')
+            ->orderBy('id')
             ->limit(8)
             ->get();
 
         //tác phảm nổi bật
         $galleries = Gallery::where('is_active', 1)
-            ->orderBy('sort_order')
+            ->orderBy('id')
             ->limit(10)
             ->get();
 

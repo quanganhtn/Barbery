@@ -3,36 +3,31 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Mail\BookingLookupCodeMail;
+use App\Mail\BookingCodeMail;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Mail;
 
-class BookingActionController extends Controller
+class BookingActionController extends Controller //quản lý trạng thái booking
 {
-    public function confirm($id)
+    public function confirm($id) //xác nhận
     {
-        $b = Booking::findOrFail($id);
+        $b = Booking::findOrFail($id); //lấy giữ liệu booking
 
-        if ($b->status !== 'pending') {
+        if ($b->status !== 'pending') { //kiểm tra trạng thái
             return back()->with([
                 'message' => 'Chỉ có thể xác nhận lịch đang chờ.',
                 'alert-type' => 'error'
             ]);
         }
 
-        if (empty($b->lookup_code)) {
-            $b->lookup_code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        }
-
         $b->status = 'confirmed';
-        $b->lookup_code_sent_at = now();
-        $b->save();
+        $b->save(); //update trạng thái
 
         try {
             if (!empty($b->customer_email)) {
-                Mail::to($b->customer_email)->send(new BookingLookupCodeMail($b));
-            }
-        } catch (\Throwable $e) {
+                Mail::to($b->customer_email)->send(new BookingCodeMail($b));
+            } //gửi mail
+        } catch (\Throwable $e) { //kiểm tra lỗi mail thì thông báo
             report($e);
 
             return back()->with([
@@ -47,7 +42,7 @@ class BookingActionController extends Controller
         ]);
     }
 
-    public function cancel($id)
+    public function cancel($id) //hủy lịch
     {
         $b = Booking::findOrFail($id);
 
@@ -58,7 +53,7 @@ class BookingActionController extends Controller
             ]);
         }
 
-        $b->update(['status' => 'cancelled']);
+        $b->update(['status' => 'cancelled']);   //chuyển đổi trạng thái
 
         return back()->with([
             'message' => 'Đã hủy lịch ' . $b->booking_code,
@@ -68,16 +63,16 @@ class BookingActionController extends Controller
 
     public function complete($id)
     {
-        $b = Booking::findOrFail($id);
+        $b = Booking::findOrFail($id);   //kiểm tra booking
 
-        if ($b->status !== 'confirmed') {
+        if ($b->status !== 'confirmed') { //nếu trang thái đã được xác nhận sau khi cắt xong thì sẽ nhấn hoàn thành
             return back()->with([
                 'message' => 'Chỉ có thể hoàn thành lịch đã xác nhận.',
                 'alert-type' => 'error'
             ]);
         }
 
-        $b->update(['status' => 'completed']);
+        $b->update(['status' => 'completed']); //đổi trạng th
 
         return back()->with([
             'message' => 'Đã hoàn thành lịch ' . $b->booking_code,

@@ -6,11 +6,11 @@ use App\Services\Ai\AiService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
-class HairstyleController extends Controller
+class HairstyleController extends Controller //nhận ảnh trả kết quả
 {
     public function index()
     {
-        return view('site.hairstyle');
+        return view('site.hairstyle'); //trả view ảnh
     }
 
     public function analyze(Request $request, AiService $ai): JsonResponse

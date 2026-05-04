@@ -4,18 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Gallery extends Model
+class Gallery extends Model //
 {
-    protected $fillable = [
+    protected $fillable = [ //danh sách các cột cho phép gán dữ liệu
         'title',
         'subtitle',
         'image',
         'is_active',
-        'sort_order',
     ];
 
-    protected $casts = [
+    protected $casts = [ //ép kiểu dữ liệu
         'is_active' => 'boolean',
-        'sort_order' => 'integer',
     ];
 }

@@ -16,7 +16,6 @@
 
         <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin: 20px 0;">
             <p><strong>Mã đặt lịch:</strong> {{ $booking->booking_code }}</p>
-            <p><strong>Mã tra cứu:</strong> {{ $booking->lookup_code }}</p>
             <p><strong>Dịch vụ:</strong> {{ $booking->service_name }}</p>
             <p><strong>Thợ cắt:</strong> {{ $booking->stylist_name }}</p>
             <p><strong>Ngày:</strong> {{ $booking->booking_date?->format('Y-m-d') }}</p>
@@ -25,7 +24,7 @@
             <p><strong>Tổng tiền:</strong> {{ number_format($booking->total_price, 0, ',', '.') }}đ</p>
         </div>
 
-        <p>Vui lòng lưu lại <strong>mã đặt lịch</strong> và <strong>mã tra cứu</strong> để dùng khi cần tra cứu thông
+        <p>Vui lòng lưu lại <strong>mã đặt lịch</strong> để dùng khi cần tra cứu thông
             tin lịch hẹn.</p>
 
         <p>Trân trọng,<br>Barbery</p>

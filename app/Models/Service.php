@@ -18,7 +18,6 @@ class Service extends Model
         'is_active',
         'is_featured',
         'is_hot',
-        'sort_order',
     ];
 
     protected $casts = [
@@ -32,18 +31,13 @@ class Service extends Model
 
     public function bookings()
     {
-        return $this->hasMany(Booking::class);
+        return $this->belongsToMany(Booking::class, 'booking_service')
+            ->withPivot(['service_name', 'price', 'duration_min'])
+            ->withTimestamps();
     }
-
 
     public function category()
     {
         return $this->belongsTo(ServiceCategory::class, 'category_id');
-    }
-    public function bookingsMany()
-    {
-        return $this->belongsToMany(Booking::class, 'booking_service')
-            ->withPivot(['service_name', 'price', 'duration_min'])
-            ->withTimestamps();
     }
 }

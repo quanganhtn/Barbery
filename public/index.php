@@ -16,7 +16,7 @@ define('LARAVEL_START', microtime(true));
 |
 */
 
-if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+if (file_exists($maintenance = __DIR__ . '/../storage/framework/maintenance.php')) {
     require $maintenance;
 }
 
@@ -31,7 +31,7 @@ if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php'))
 |
 */
 
-require __DIR__.'/../vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';  //nạp autoload giúp Laravel load được các class
 
 /*
 |--------------------------------------------------------------------------
@@ -44,11 +44,11 @@ require __DIR__.'/../vendor/autoload.php';
 |
 */
 
-$app = require_once __DIR__.'/../bootstrap/app.php';
+$app = require_once __DIR__ . '/../bootstrap/app.php'; //khỏi động laravel app
 
-$kernel = $app->make(Kernel::class);
+$kernel = $app->make(Kernel::class); //Lấy HTTP Kernel để xử lý request
 
-$response = $kernel->handle(
+$response = $kernel->handle(  //Nhận request từ trình duyệt, xử lý route/controller/view, rồi gửi response về
     $request = Request::capture()
 )->send();
 

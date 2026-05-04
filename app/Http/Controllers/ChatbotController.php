@@ -7,10 +7,7 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class ChatbotController extends Controller
 {
-    /**
-     * API gửi tin nhắn cho chatbot
-     */
-    public function send(Request $request)
+    public function send(Request $request) //nhận tin nhắn từ người dùng
     {
         $data = $request->validate([
             'message' => ['required', 'string', 'max:1000'],

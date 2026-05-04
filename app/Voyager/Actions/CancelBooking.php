@@ -6,12 +6,12 @@ use TCG\Voyager\Actions\AbstractAction;
 
 class CancelBooking extends AbstractAction
 {
-    public function getTitle()
+    public function getTitle() //nút hủy
     {
         return 'Hủy';
     }
 
-    public function getIcon()
+    public function getIcon()  //icon hủy booking
     {
         return 'voyager-x';
     }
@@ -21,22 +21,22 @@ class CancelBooking extends AbstractAction
         return 'edit';
     }
 
-    public function getAttributes()
+    public function getAttributes() //CSS cho nút hủy
     {
         return ['class' => 'btn btn-sm btn-danger'];
     }
 
-    public function shouldActionDisplayOnDataType()
+    public function shouldActionDisplayOnDataType()  //đặt nút hủy ở trang bookings
     {
         return $this->dataType->slug === 'bookings';
     }
 
-    public function shouldActionDisplayOnRow($row)
+    public function shouldActionDisplayOnRow($row)  //quyết định nút hủy hiện khi nào
     {
         return in_array($row->status, ['pending', 'confirmed']);
     }
 
-    public function getDefaultRoute()
+    public function getDefaultRoute()  //route chạy khi admin bấm hủy
     {
         return route('admin.bookings.action.cancel', $this->data->id);
     }

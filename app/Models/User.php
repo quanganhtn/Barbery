@@ -9,14 +9,11 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends \TCG\Voyager\Models\User
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens,  //tạo token API
+        HasFactory,   //tạo user mẫu/test
+        Notifiable;   //nhận thông báo
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
+    protected $fillable = [ //danh sách các cột được phép gán
         'name',
         'email',
         'password',
@@ -25,23 +22,12 @@ class User extends \TCG\Voyager\Models\User
         'settings',
     ];
 
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
+    protected $hidden = [  //ẩn dữ liệu
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
+    protected $casts = [   //ép kiểu dữ liệu
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'settings' => 'array',

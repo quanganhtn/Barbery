@@ -8,9 +8,11 @@ class ServiceCategory extends Model
 {
     protected $table = 'service_categories';
 
-    protected $fillable = ['name', 'slug', 'sort_order', 'is_active'];
+
+    protected $fillable = ['name', 'slug', 'is_active'];
 
     protected $casts = ['is_active' => 'boolean'];
+
 
     public function services()
     {

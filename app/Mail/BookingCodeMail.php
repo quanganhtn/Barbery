@@ -7,19 +7,14 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class BookingLookupCodeMail extends Mailable
+class BookingCodeMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * Booking vừa tạo
-     */
-    public Booking $booking;
 
-    /**
-     * Inject booking vào mail
-     */
-    public function __construct(Booking $booking)
+    public Booking $booking; //biến chứa dữ liệu booking
+
+    public function __construct(Booking $booking) //chèn booking vào mail
     {
         $this->booking = $booking;
     }
@@ -30,6 +25,6 @@ class BookingLookupCodeMail extends Mailable
     public function build()
     {
         return $this->subject('Barbery - Mã tra cứu lịch hẹn')
-            ->view('emails.booking_lookup_code');
+            ->view('emails.booking_code');
     }
 }

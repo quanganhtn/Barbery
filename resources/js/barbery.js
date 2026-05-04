@@ -14,73 +14,6 @@ function $(id) {
 let services = [];
 let stylists = [];
 
-// async function loadCatalog() {
-//     // Guard: routes phải tồn tại
-//     if (!window.Barbery?.routes?.services || !window.Barbery?.routes?.stylists) {
-//         console.error("window.Barbery.routes missing", window.Barbery);
-//         throw new Error("Missing Barbery routes");
-//     }
-//     const [sRes, stRes] = await Promise.all([
-//         fetch(window.Barbery.routes.services, { headers: { Accept: "application/json" } }),
-//         fetch(window.Barbery.routes.stylists, { headers: { Accept: "application/json" } }),
-//     ]);
-//     async function fetchJson(url, opts = {}) {
-//         try {
-//             const res = await fetch(url, {
-//                 headers: { Accept: "application/json", ...(opts.headers || {}) },
-//                 ...opts,
-//             });
-//             const json = await res.json();
-//             if (!res.ok || !json?.ok) {
-//                 throw new Error("Không lấy được dữ liệu");
-//             }
-//             return { res, json };
-//         } catch (error) {
-//             console.error("Error fetching data: ", error);
-//             throw error;
-//         }
-//     }
-//     if (!sRes.ok || sJson?.ok === false) {
-//         console.warn("services api error", sRes.status, sJson);
-//         throw new Error(sJson?.message || "Không tải được danh sách dịch vụ");
-//     }
-//     if (!stRes.ok || stJson?.ok === false) {
-//         console.warn("stylists api error", stRes.status, stJson);
-//         throw new Error(stJson?.message || "Không tải được danh sách thợ cắt");
-//     }
-//     const sList = Array.isArray(sJson?.data) ? sJson.data : [];
-//     const stList = Array.isArray(stJson?.data) ? stJson.data : [];
-//     // NOTE: duration_min là nguồn chính để tính tổng thời gian.
-//     services = sList.map((x) => ({
-//         id: x.id,
-//         name: x.name,
-//         price: Number(x.price || 0),
-//         duration_min: Number(x.duration_min || 30),
-//         icon: x.icon || "⭐",
-//     }));
-//     function getInitials(name) {
-//         name = (name || "").trim();
-//         if (!name) return "B";
-//         const parts = name.split(/\s+/);
-//         const first = parts[0]?.[0] || "";
-//         const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
-//         return (first + last).toUpperCase();
-//     }
-//     stylists = stList.map((x) => ({
-//         id: x.id,
-//         name: x.name,
-//         role: x.role || "Stylist",
-//         exp: Number(x.exp || 0),
-//         rating: Number(x.rating || 0),
-//         specialty: x.specialty
-//             ? String(x.specialty).split(",").map((t) => t.trim()).filter(Boolean)
-//             : [],
-//         status: x.status || "available",
-//         // NEW:
-//         avatar_url: x.avatar_url ? String(x.avatar_url) : null,
-//         initials: getInitials(x.name),
-//     }));
-// }
 async function loadCatalog() {
     if (!window.Barbery?.routes?.services || !window.Barbery?.routes?.stylists) {
         throw new Error("Missing Barbery routes");
@@ -185,9 +118,9 @@ function computeEndTime(dateStr, timeStr, totalMin) {
     return `${hh}:${mm}`;
 }
 
-function getNext14Days() {
+function getNext13Days() {
     const days = [];
-    for (let i = 0; i < 14; i++) {
+    for (let i = 1; i < 13; i++) {
         const d = new Date();
         d.setDate(d.getDate() + i);
         days.push(d.toISOString().split("T")[0]); // YYYY-MM-DD
@@ -518,7 +451,7 @@ function renderDates() {
     const c = $("date-list");
     if (!c) return;
 
-    const days = getNext14Days();
+    const days = getNext13Days();
     c.innerHTML = days.map((d) => {
         const dt = new Date(d);
         return `
