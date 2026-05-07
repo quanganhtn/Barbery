@@ -6,33 +6,30 @@ import mediapipe as mp
 import numpy as np
 from fastapi import FastAPI, UploadFile, File, HTTPException
 
-app = FastAPI(title="Barbery Face Analysis AI")
+app = FastAPI(title="Barbery Face Analysis AI") #tạo app FastAPI
 
-# =========================================================
-# CONFIG
-# =========================================================
 BASE_DIR = Path(__file__).resolve().parent
-MODEL_PATH = BASE_DIR / "models" / "face_landmarker.task"
+MODEL_PATH = BASE_DIR / "models" / "face_landmarker.task" #tìm model
 
-if not MODEL_PATH.exists():
+if not MODEL_PATH.exists():  #kiểm tra model
     raise RuntimeError(f"Thiếu model: {MODEL_PATH}")
 
+#lấy class
 BaseOptions = mp.tasks.BaseOptions
 FaceLandmarker = mp.tasks.vision.FaceLandmarker
 FaceLandmarkerOptions = mp.tasks.vision.FaceLandmarkerOptions
 RunningMode = mp.tasks.vision.RunningMode
 
+#cấu hình
 options = FaceLandmarkerOptions(
-    base_options=BaseOptions(model_asset_path=str(MODEL_PATH)),
-    running_mode=RunningMode.IMAGE,
-    num_faces=1,
+    base_options=BaseOptions(model_asset_path=str(MODEL_PATH)),#đường dẫn
+    running_mode=RunningMode.IMAGE, #sử lý ảnh tĩnh
+    num_faces=1,  #chỉ phân tích 1 ảnh
 )
 
-landmarker = FaceLandmarker.create_from_options(options)
+landmarker = FaceLandmarker.create_from_options(options) #model chỉ load khi server khởi động
 
-# =========================================================
-# 15 KIỂU TÓC CỦA BẠN
-# =========================================================
+#danh sách kiểu tóc
 STYLE_CATALOG = {
     "buzz-cut": {
         "name": "Buzz Cut",
@@ -118,29 +115,29 @@ FACE_SHAPE_LABELS = {
     "oblong": "Mặt dài",
 }
 
-# =========================================================
+
 # HELPERS
-# =========================================================
-def clamp(x: float, min_value: float = 0.0, max_value: float = 1.0) -> float:
+
+def clamp(x: float, min_value: float = 0.0, max_value: float = 1.0) -> float:  #ép giá trị từ 0 đến 1
     return max(min_value, min(max_value, x))
 
 
-def safe_float(x: Any) -> float:
+def safe_float(x: Any) -> float:  #chuyển dữ liệu sang số thực
     try:
         return float(x)
     except Exception:
         return 0.0
 
 
-def distance(a: np.ndarray, b: np.ndarray) -> float:
+def distance(a: np.ndarray, b: np.ndarray) -> float:  #tính toán khoảng cách giữa 2 điểm
     return float(np.linalg.norm(a - b))
 
 
 def to_np_points(face_landmarks) -> np.ndarray:
-    return np.array([(lm.x, lm.y) for lm in face_landmarks], dtype=np.float32)
+    return np.array([(lm.x, lm.y) for lm in face_landmarks], dtype=np.float32) #chỉ lấy tọa độ 2D
 
 
-def cosine_similarity_score(value: float, target: float, tolerance: float) -> float:
+def cosine_similarity_score(value: float, target: float, tolerance: float) -> float: #tính tỉ lệ dáng mặt
     if tolerance <= 0:
         return 0.0
     diff = abs(value - target)
@@ -148,34 +145,40 @@ def cosine_similarity_score(value: float, target: float, tolerance: float) -> fl
     return clamp(score, 0.0, 1.0)
 
 
-# =========================================================
 # ĐÁNH GIÁ CHẤT LƯỢNG ẢNH
-# =========================================================
+
 def assess_quality(points: np.ndarray) -> Dict[str, Any]:
+    # lấy các điểm trên mặt
     left_eye = points[33]
     right_eye = points[263]
-    forehead = points[10]
-    chin = points[152]
+    forehead = points[10]     #trán
+    chin = points[152]        #cằm
     left_cheek = points[234]
     right_cheek = points[454]
 
+    #chiều dài và độ rộng khuân mặt
     face_width = distance(left_cheek, right_cheek)
     face_height = distance(forehead, chin)
 
+    # kiểm tra độ nghiêng mặt
     eye_dx = abs(right_eye[0] - left_eye[0]) + 1e-6
     eye_dy = abs(right_eye[1] - left_eye[1])
     eye_tilt_ratio = eye_dy / eye_dx
     frontal_score = 1.0 - min(eye_tilt_ratio * 2.2, 1.0)
 
+    #xem mặt có ở giữ ko
     face_center_x = (left_cheek[0] + right_cheek[0]) / 2.0
     center_offset = abs(face_center_x - 0.5)
     center_score = 1.0 - min(center_offset * 2.6, 1.0)
 
+    #mặt có đủ to ko
     size_score = clamp((face_width - 0.18) / 0.15, 0.0, 1.0)
 
+    #mặt có méo ko
     ratio = face_height / (face_width + 1e-6)
     ratio_score = 1.0 - min(abs(ratio - 1.25) / 0.75, 1.0)
 
+    #mặt có sát mép ảnh ko
     margin_left = left_cheek[0]
     margin_right = 1.0 - right_cheek[0]
     margin_top = forehead[1]
@@ -183,6 +186,7 @@ def assess_quality(points: np.ndarray) -> Dict[str, Any]:
     margin_min = min(margin_left, margin_right, margin_top, margin_bottom)
     margin_score = clamp((margin_min - 0.02) / 0.06, 0.0, 1.0)
 
+    #tính điểm tổng và so sánh với điểm hợp lý bên dưới
     quality_score = (
         frontal_score * 0.32
         + center_score * 0.20
@@ -191,6 +195,7 @@ def assess_quality(points: np.ndarray) -> Dict[str, Any]:
         + margin_score * 0.12
     )
 
+    #phân loại các kiểu mặt
     issues: List[str] = []
     if frontal_score < 0.55:
         issues.append("Ảnh hơi nghiêng, nên chụp chính diện hơn")
@@ -222,7 +227,7 @@ def assess_quality(points: np.ndarray) -> Dict[str, Any]:
 # =========================================================
 # PHÂN TÍCH 5 TIÊU CHÍ
 # =========================================================
-def classify_forehead_size(forehead_ratio: float) -> str:
+def classify_forehead_size(forehead_ratio: float) -> str: # tính tỉ lệ trán so với má
     if forehead_ratio >= 0.96:
         return "Rộng"
     if forehead_ratio >= 0.88:
@@ -230,40 +235,47 @@ def classify_forehead_size(forehead_ratio: float) -> str:
     return "Hẹp"
 
 
-def classify_jawline_shape(jaw_ratio: float, chin_taper_ratio: float) -> str:
+def classify_jawline_shape(jaw_ratio: float, chin_taper_ratio: float) -> str:   #tính tỉ lệ mặt
     if jaw_ratio >= 0.90 and chin_taper_ratio <= 0.78:
         return "Vuông rõ"
     if jaw_ratio >= 0.82 and chin_taper_ratio <= 0.88:
         return "Cân đối"
     return "Thon"
 
-
+# trích xuất chỉ số khuân mặt
 def extract_metrics(points: np.ndarray) -> Dict[str, Any]:
-    forehead_top = points[10]
-    chin = points[152]
 
+    #đo chiều dài khuân mặt
+    forehead_top = points[10]  #trán
+    chin = points[152]         #cằm
+
+    #đo chiều rộng khuân mặt
     left_cheek = points[234]
     right_cheek = points[454]
 
+    #độ rộng hàm
     left_jaw = points[172]
     right_jaw = points[397]
 
+    #độ rộng trán
     left_temple = points[54]
     right_temple = points[284]
 
+    #độ rộng cằm
     left_lower_chin = points[149]
     right_lower_chin = points[378]
 
-    face_height = distance(forehead_top, chin)
-    cheek_width = distance(left_cheek, right_cheek)
-    jaw_width = distance(left_jaw, right_jaw)
-    forehead_width = distance(left_temple, right_temple)
-    chin_width = distance(left_lower_chin, right_lower_chin)
 
-    face_ratio = face_height / (cheek_width + 1e-6)
-    jaw_ratio = jaw_width / (cheek_width + 1e-6)
-    forehead_ratio = forehead_width / (cheek_width + 1e-6)
-    chin_taper_ratio = chin_width / (jaw_width + 1e-6)
+    face_height = distance(forehead_top, chin)              #chiều dài từ trán đến cằm.
+    cheek_width = distance(left_cheek, right_cheek)         #chiều rộng vùng má
+    jaw_width = distance(left_jaw, right_jaw)               #độ rộng phần hàm
+    forehead_width = distance(left_temple, right_temple)    #độ rộng vùng trán
+    chin_width = distance(left_lower_chin, right_lower_chin)#độ rộng phần cằm
+
+    face_ratio = face_height / (cheek_width + 1e-6)         #tỉ lệ dài/rộng khuôn mặt
+    jaw_ratio = jaw_width / (cheek_width + 1e-6)            #tỉ lệ hàm so với má
+    forehead_ratio = forehead_width / (cheek_width + 1e-6)  #tỉ lệ trán so với má
+    chin_taper_ratio = chin_width / (jaw_width + 1e-6)      #độ thon của cằm
 
     # 1. chiều dài mặt
     if face_ratio < 1.12:
@@ -304,10 +316,10 @@ def extract_metrics(points: np.ndarray) -> Dict[str, Any]:
     }
 
 
-# =========================================================
+
 # HÌNH DẠNG KHUÔN MẶT
-# =========================================================
-def score_face_shapes(metrics: Dict[str, Any]) -> Dict[str, float]:
+
+def score_face_shapes(metrics: Dict[str, Any]) -> Dict[str, float]: # lấy dữ liệu đã được tính toán ép về số thực
     face_ratio = safe_float(metrics["face_ratio"])
     jaw_ratio = safe_float(metrics["jaw_ratio"])
     forehead_ratio = safe_float(metrics["forehead_ratio"])
@@ -351,20 +363,22 @@ def score_face_shapes(metrics: Dict[str, Any]) -> Dict[str, float]:
 
     return scores
 
-
+#chọn dáng mặt phù hợp nhất
 def pick_face_shape(shape_scores: Dict[str, float]) -> Dict[str, Any]:
-    ordered = sorted(shape_scores.items(), key=lambda x: x[1], reverse=True)
+    ordered = sorted(shape_scores.items(), key=lambda x: x[1], reverse=True) #sắp xếp theo điểm top 1 và 2
     best_shape, best_score = ordered[0]
     second_shape, second_score = ordered[1]
 
-    delta = best_score - second_score
+    delta = best_score - second_score #khoảng cách điểm giữa top 1 và 2
     uncertain = delta < 8
 
+    #nếu chưa chắc chắn
     if uncertain:
         display_label = f"{FACE_SHAPE_LABELS.get(best_shape, best_shape)} thiên {FACE_SHAPE_LABELS.get(second_shape, second_shape).replace('Mặt ', '').lower()}"
     else:
         display_label = FACE_SHAPE_LABELS.get(best_shape, best_shape)
 
+    #độ tin cậy
     confidence = clamp(best_score / 100.0, 0.0, 1.0)
 
     return {
@@ -381,12 +395,13 @@ def pick_face_shape(shape_scores: Dict[str, float]) -> Dict[str, Any]:
     }
 
 
-# =========================================================
+
 # CHẤM ĐIỂM KIỂU TÓC THEO 5 TIÊU CHÍ
-# =========================================================
+
 def top_hairstyles(face_shape: str, second_shape: str, confidence: float, metrics: Dict[str, Any]) -> List[Dict[str, Any]]:
     scores = {key: 0 for key in STYLE_CATALOG.keys()}
 
+    # điểm bắt đầu là 0 và cộng điểm theo 5 tiêu chí
     face_length = metrics.get("face_length")
     face_width = metrics.get("face_width")
     forehead = metrics.get("forehead_size")
@@ -525,12 +540,13 @@ def top_hairstyles(face_shape: str, second_shape: str, confidence: float, metric
         "taper-fade": "fade",
         "undercut": "fade",
     }
-
+    #sắp xếp kiểu tóc theo điểm
     ordered_raw = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
-    selected = []
-    used_groups = {}
+    selected = [] #danh sách kiểu tóc được chọn
+    used_groups = {} #đếm số kiểu tóc được chọn
 
+    #duyệt từng kiểu tóc theo điểm
     for key, score in ordered_raw:
         group = style_groups.get(key, key)
         group_count = used_groups.get(group, 0)
@@ -554,9 +570,8 @@ def top_hairstyles(face_shape: str, second_shape: str, confidence: float, metric
     return suggestions
 
 
-# =========================================================
-# FALLBACK
-# =========================================================
+#trả kết quả khi ko phân tích được ảnh
+
 def fallback_response(message: str = "Chưa thể phân tích ổn định từ ảnh hiện tại.") -> Dict[str, Any]:
     return {
         "status": "need_better_photo",
@@ -577,29 +592,31 @@ def fallback_response(message: str = "Chưa thể phân tích ổn định từ 
     }
 
 
-# =========================================================
 # API
-# =========================================================
+
 @app.get("/")
 def home():
-    return {"ok": True, "service": "barbery-ai"}
+    return {"ok": True, "service": "barbery-ai"} #test server
 
-
+#nhận file ảnh
 @app.post("/analyze-face")
 async def analyze_face(image: UploadFile = File(...)):
+
+    #kiểm tra file
     if not image:
         raise HTTPException(status_code=400, detail="Thiếu file ảnh")
-
     contents = await image.read()
     if not contents:
         raise HTTPException(status_code=400, detail="File ảnh rỗng")
 
+    #giải mã file/bytes thành ma trận pixel
     np_img = np.frombuffer(contents, np.uint8)
     img = cv2.imdecode(np_img, cv2.IMREAD_COLOR)
 
     if img is None:
         raise HTTPException(status_code=400, detail="Ảnh không hợp lệ")
 
+    #chạy mediapipe
     rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
     result = landmarker.detect(mp_image)
@@ -608,6 +625,7 @@ async def analyze_face(image: UploadFile = File(...)):
         return fallback_response("Không phát hiện được khuôn mặt. Vui lòng dùng ảnh rõ mặt, chính diện hơn.")
 
     points = to_np_points(result.face_landmarks[0])
+
 
     quality = assess_quality(points)
     if quality["level"] == "reject":

@@ -12,6 +12,7 @@ class Service extends Model
         'name',
         'desc',
         'price',
+        'stylists_commission',
         'duration_min',
         'icon',
         'image',

@@ -12,6 +12,7 @@ class Stylist extends Model
         'role',
         'exp',
         'rating',
+        'base_salary',
         'specialty',
         'status',
         'avatar',

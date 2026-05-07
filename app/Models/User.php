@@ -2,18 +2,17 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends \TCG\Voyager\Models\User
 {
-    use HasApiTokens,  //tạo token API
-        HasFactory,   //tạo user mẫu/test
-        Notifiable;   //nhận thông báo
+    use HasApiTokens,  #tạo token API
+        HasFactory,   #tạo user mẫu/test
+        Notifiable;   #nhận thông báo
 
-    protected $fillable = [ //danh sách các cột được phép gán
+    protected $fillable = [ #danh sách các cột được phép gán
         'name',
         'email',
         'password',
@@ -22,12 +21,12 @@ class User extends \TCG\Voyager\Models\User
         'settings',
     ];
 
-    protected $hidden = [  //ẩn dữ liệu
+    protected $hidden = [  #ẩn dữ liệu
         'password',
         'remember_token',
     ];
 
-    protected $casts = [   //ép kiểu dữ liệu
+    protected $casts = [   #ép kiểu dữ liệu
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'settings' => 'array',

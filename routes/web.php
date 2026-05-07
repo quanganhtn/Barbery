@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\BookingActionController;
+use App\Http\Controllers\Admin\SalaryController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\CatalogApiController;
 use App\Http\Controllers\ChatbotController;
@@ -37,6 +39,26 @@ Route::group(['prefix' => 'admin', 'middleware' => ['admin.user']], function () 
 
     Route::match(['GET', 'POST'], 'bookings/{id}/complete', [BookingActionController::class, 'complete'])
         ->name('admin.bookings.action.complete');
+
+    // ===== ATTENDANCE ADMIN =====
+    Route::get('attendances', [AttendanceController::class, 'index'])
+        ->name('admin.attendances.index');
+
+    Route::post('attendances', [AttendanceController::class, 'store'])
+        ->name('admin.attendances.store');
+
+    // ===== SALARY ADMIN =====
+    Route::get('salaries', [SalaryController::class, 'index'])
+        ->name('admin.salaries.index');
+
+    Route::post('salaries/calculate', [SalaryController::class, 'calculate'])
+        ->name('admin.salaries.calculate');
+
+    Route::get('salaries/{id}', [SalaryController::class, 'show'])
+        ->name('admin.salaries.show');
+
+    Route::post('salaries/{id}/paid', [SalaryController::class, 'markPaid'])
+        ->name('admin.salaries.paid');
 });
 
 // ===== API =====

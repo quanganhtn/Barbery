@@ -8,6 +8,9 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
                 'resources/js/barbery.js',
+                'resources/js/booking.js',
+                'resources/js/lookup.js',
+
             ],
             refresh: true,
         }),

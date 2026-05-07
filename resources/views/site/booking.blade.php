@@ -229,3 +229,6 @@
         </div>
     </div>
 @endsection
+@push('scripts')
+    @vite('resources/js/booking.js')
+@endpush
