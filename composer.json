@@ -11,6 +11,7 @@
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
+        "resend/resend-laravel": "*",
         "tcg/voyager": "1.7.*"
     },
     "require-dev": {
@@ -65,7 +66,8 @@
         "audit": {
             "ignore": ["PKSA-w5gn-5kzr-c91d"],
             "block-insecure": false
-        }
+        },
+        "process-timeout": 0
     },
     "minimum-stability": "stable",
     "prefer-stable": true
