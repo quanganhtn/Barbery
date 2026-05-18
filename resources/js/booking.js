@@ -1,7 +1,3 @@
-// =========================================================
-// BOOKING.JS — Booking page only
-// =========================================================
-
 const $ = window.$id;
 const normalizePhone = window.normalizePhone;
 const formatPrice = window.formatPrice;
@@ -11,33 +7,40 @@ const showToast = window.showToast;
 const showLoading = window.showLoading;
 const fetchJson = window.fetchJson;
 
+
+//biến lưu dữ liệu
 let services = [];
 let stylists = [];
 
 async function loadCatalog() {
+    //kiểm tra route tồn tại
     if (!window.Barbery?.routes?.services || !window.Barbery?.routes?.stylists) {
         throw new Error("Missing Barbery routes");
     }
-
+    //gọi 2 API cùng lúc
     const [serviceResult, stylistResult] = await Promise.all([
         fetchJson(window.Barbery.routes.services),
         fetchJson(window.Barbery.routes.stylists),
     ]);
 
+    //tách kết quả
     const { res: serviceRes, json: serviceJson } = serviceResult;
     const { res: stylistRes, json: stylistJson } = stylistResult;
 
+
+    //kiểm tra lỗi
     if (!serviceRes.ok || !serviceJson?.ok) {
         throw new Error(serviceJson?.message || "Không lấy được dịch vụ");
     }
-
     if (!stylistRes.ok || !stylistJson?.ok) {
         throw new Error(stylistJson?.message || "Không lấy được thợ cắt");
     }
 
+    //lấy mảng dữ liệu
     const sList = Array.isArray(serviceJson.data) ? serviceJson.data : [];
     const stList = Array.isArray(stylistJson.data) ? stylistJson.data : [];
 
+    //chuẩn hóa dữ liệu
     services = sList.map((x) => ({
         id: x.id,
         name: x.name,
@@ -46,16 +49,17 @@ async function loadCatalog() {
         icon: x.icon || "⭐",
     }));
 
+    //lấy chữ đầu làm ảnh
     function getInitials(name) {
+        //kiểm tra nếu tên nếu rỗng
         name = (name || "").trim();
-
         if (!name) return "B";
 
-        const parts = name.split(/\s+/);
-        const first = parts[0]?.[0] || "";
-        const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+        const parts = name.split(/\s+/);  //tách tên theo khoảng trắng
+        const first = parts[0]?.[0] || ""; //lấy chữ đầu của từ đầu tiên
+        const last = parts.length > 1 ? parts[parts.length - 1][0] : ""; //lấy chữ cái đầu của từ sau
 
-        return (first + last).toUpperCase();
+        return (first + last).toUpperCase();//ghép và viết hoa
     }
 
     stylists = stList.map((x) => ({
@@ -63,17 +67,18 @@ async function loadCatalog() {
         name: x.name,
         role: x.role || "Stylist",
         exp: Number(x.exp || 0),
-        rating: Number(x.rating || 0),
+        rating: Number(x.rating || 0), //điểm đánh giá
+        //chuyên môn
         specialty: x.specialty
             ? String(x.specialty).split(",").map((t) => t.trim()).filter(Boolean)
             : [],
-        status: x.status || "available",
+        status: x.status || "available", //trạng thái
         avatar_url: x.avatar_url ? String(x.avatar_url) : null,
-        initials: getInitials(x.name),
+        initials: getInitials(x.name),  //chữ viết tắt từ tên
     }));
 }
 
-// ===== LEGACY TIME SLOTS (không còn dùng để render UI, chỉ giữ để reference) =====
+//khung giờ đặt lịch
 const timeSlots = [
     "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
     "12:00", "12:30", "13:00", "13:30",
@@ -81,17 +86,18 @@ const timeSlots = [
     "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
 ];
 
-// ===== APP STATE =====
-let currentStep = 1;
-let bookingData = { services: [], stylist: null, date: null, time: null };
-let availableTimes = new Set();
+//trạng thái đặt lịch
+let currentStep = 1; //xem đang đặt lịch ở bước nào
+let bookingData = { services: [], stylist: null, date: null, time: null };  //lưu lựa chọn
+let availableTimes = new Set();  //lưu giờ trống
 
+//tổng thời gian dịch vụ
 function computeTotalDuration(selectedServices) {
     return (selectedServices || []).reduce((sum, s) => {
         return sum + Number(s.duration_min || 0);
     }, 0);
 }
-
+//danh sách ngày đặt lịch
 function getNext12Days() {
     const days = [];
     for (let i = 1; i < 13; i++) {
@@ -101,44 +107,49 @@ function getNext12Days() {
     }
     return days;
 }
-
+//ktra điều kiện lấy giờ trống
 function canLoadSlots() {
     return !!(bookingData.stylist && bookingData.date && bookingData.services?.length);
 }
 
-// =========================================================
-// AVAILABLE SLOTS (API)
-// =========================================================
+//lấy giờ trống
 async function fetchAvailableSlots() {
+    //kiểm tra điều kiện
     if (!canLoadSlots()) {
         availableTimes = new Set();
         return;
     }
 
+    //tính tổng tgian dịch vụ
     const totalMin = computeTotalDuration(bookingData.services);
+    //tạo Url
     const url =
         `${window.Barbery.routes.availableSlots}` +
         `?stylist_id=${bookingData.stylist.id}` +
         `&date=${bookingData.date}` +
         `&duration=${totalMin}`;
-
+    //gọi APT
     try {
         const { res, json } = await fetchJson(url);
 
+        //nếu lỗi
         if (!res.ok || !json?.ok) {
             availableTimes = new Set();
             console.warn("availableSlots not ok", res.status, json);
             return;
         }
 
+        //lấy danh sách giờ trống
         const slots = Array.isArray(json.data) ? json.data : (json.data?.slots || []);
+        //lưu giờ trống
         availableTimes = new Set(slots);
+        //nếu lỗi thì xóa giờ trống
     } catch (e) {
         availableTimes = new Set();
         console.warn("availableSlots fetch error", e);
     }
 }
-
+//sửa lịch thì thay đổi và load lại giờ trống
 async function refreshSlotsAndRender() {
     bookingData.time = null;
 
@@ -158,23 +169,22 @@ async function refreshSlotsAndRender() {
     validateStep3();
     updateSummary();
 }
-// =========================================================
-// BOOKING FLOW
-// =========================================================
+
+//điều khiển các bước đặt lịch
 window.nextStep = async function () {
-    if (currentStep >= 4) return;
+    if (currentStep >= 4) return; //ko cho vượt quá bước 4
 
-    $(`booking-step-${currentStep}`)?.classList.add("hidden");
-    currentStep++;
-    $(`booking-step-${currentStep}`)?.classList.remove("hidden");
+    $(`booking-step-${currentStep}`)?.classList.add("hidden"); //ẩn bước hiện tại
+    currentStep++;  //tắng số bước
+    $(`booking-step-${currentStep}`)?.classList.remove("hidden"); //hiện bước mới
 
-    updateStepIndicators();
-    updateSummary();
+    updateStepIndicators();  //cập nhật bước
+    updateSummary();        //cập nhật lịch
 
     if (currentStep === 3) {
         renderDates();
         renderTimeSlots();
-
+        //đủ điều kiện thì lấy giờ trống
         if (canLoadSlots()) {
             showLoading(true);
             await fetchAvailableSlots();
@@ -185,17 +195,18 @@ window.nextStep = async function () {
         validateStep3();
     }
 };
+//quay lại bước cũ
 window.prevStep = async function () {
     if (currentStep <= 1) return;
 
-    $(`booking-step-${currentStep}`)?.classList.add("hidden");
+    $(`booking-step-${currentStep}`)?.classList.add("hidden");//ẩn bước hiện tại
     currentStep--;
-    $(`booking-step-${currentStep}`)?.classList.remove("hidden");
+    $(`booking-step-${currentStep}`)?.classList.remove("hidden"); //hiện bước mới
 
     updateStepIndicators();
     updateSummary();
 
-    if (currentStep === 3) {
+    if (currentStep === 3) { //gọi lại API giờ trống
         renderDates();
         if (canLoadSlots()) {
             showLoading(true);
@@ -206,14 +217,17 @@ window.prevStep = async function () {
         validateStep3();
     }
 };
+//cập nhật trạng thái cac bước đặt lịch
 function updateStepIndicators() {
     for (let i = 1; i <= 4; i++) {
-        const el = $(`step-${i}-indicator`);
-        if (!el) continue;
+        const el = $(`step-${i}-indicator`); //xét theo id
+
+        if (!el) continue; //ko tìm được thì bỏ qua
 
         el.classList.remove("step-active", "step-completed");
-        el.classList.add("bg-gray-700", "text-gray-400");
+        el.classList.add("bg-gray-700", "text-gray-400");  //thêm trạng thái mặc định
 
+        //kiểm tra
         if (i < currentStep) {
             el.classList.add("step-completed");
             el.innerHTML = "✓";
@@ -225,9 +239,11 @@ function updateStepIndicators() {
         }
     }
 }
+//khi đặt lịch thành công và bấm đặt lịch mới
 window.resetBooking = function () {
-    currentStep = 1;
 
+    //quay về bước 1 và xóa data
+    currentStep = 1;
     bookingData = {
         services: [],
         stylist: null,

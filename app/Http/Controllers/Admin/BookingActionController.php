@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Mail;
 
 class BookingActionController extends Controller #quản lý trạng thái booking
 {
-    public function confirm($id) #xác nhận
+    public function confirm($id) //xác nhận
     {
         $b = Booking::findOrFail($id); #lấy giữ liệu booking
 
@@ -46,7 +46,7 @@ class BookingActionController extends Controller #quản lý trạng thái booki
         ]);
     }
 
-    public function cancel($id) #hủy lịch
+    public function cancel($id) //hủy lịch
     {
         $b = Booking::findOrFail($id);
 
@@ -67,7 +67,7 @@ class BookingActionController extends Controller #quản lý trạng thái booki
 
     public function complete($id)
     {
-        $b = Booking::findOrFail($id);   #kiểm tra booking
+        $b = Booking::findOrFail($id);   //kiểm tra booking
 
         if ($b->status !== 'confirmed') { #nếu trang thái đã được xác nhận sau khi cắt xong thì sẽ nhấn hoàn thành
             return back()->with([

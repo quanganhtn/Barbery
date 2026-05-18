@@ -1,7 +1,3 @@
-// =========================================================
-// LOOKUP.JS — Lookup page only
-// =========================================================
-
 const $ = window.$id;
 const normalizePhone = window.normalizePhone;
 const minutesToText = window.minutesToText;
@@ -9,51 +5,56 @@ const computeEndTime = window.computeEndTime;
 const showToast = window.showToast;
 const showLoading = window.showLoading;
 const fetchJson = window.fetchJson;
-// =========================================================
-// LOOKUP
-// =========================================================
+
+
+//tra cứu
 async function handleLookupSubmit(e) {
     e.preventDefault();
 
     const input = $("lookup-input");
     const raw = input?.value?.trim();
-
     if (!raw) return;
 
+    //kiểm tra xem tra bằng mã hay số điện thoại
     const q = raw.toUpperCase().startsWith("BK")
         ? raw.trim()
         : normalizePhone(raw);
 
+    //hiện loading và
     showLoading(true);
     try {
+        //gọi backend
         const { res, json } = await fetchJson(`${window.Barbery.routes.lookup}?q=${encodeURIComponent(q)}`);
         showLoading(false);
 
+        //sử lý lỗi
         if (!res.ok || !json?.ok) {
             showToast(json?.message || "Tra cứu lỗi", "error");
             return;
         }
 
+        //lấy vùng hiển thị
         const resultsWrap = $("lookup-results");
         const emptyWrap = $("lookup-empty");
         const list = $("lookup-list");
-
         if (list) list.innerHTML = "";
 
+        //trả về rỗng
         const items = json.data || [];
         if (items.length === 0) {
-            resultsWrap?.classList.add("hidden");
-            emptyWrap?.classList.remove("hidden");
+            resultsWrap?.classList.add("hidden"); //ẩn khung kết quả
+            emptyWrap?.classList.remove("hidden"); //hiện thông báo ko tìm thấy
             return;
         }
 
-        emptyWrap?.classList.add("hidden");
-        resultsWrap?.classList.remove("hidden");
+        //có kết quả
+        emptyWrap?.classList.add("hidden");  //ẩn thông báo ko tìm thấy
+        resultsWrap?.classList.remove("hidden");  //hiện khung kết quả
 
         if (list) {
             list.innerHTML = items.map((b) => {
-                const durationText = b.total_duration_min ? minutesToText(b.total_duration_min) : "-";
-                const endTime = b.total_duration_min
+                const durationText = b.total_duration_min ? minutesToText(b.total_duration_min) : "-";  //hiện tổng thời gian
+                const endTime = b.total_duration_min  //giờ kết thúc
                     ? computeEndTime(b.booking_date, b.booking_time, b.total_duration_min)
                     : "-";
 
@@ -78,6 +79,8 @@ async function handleLookupSubmit(e) {
         showToast("Không kết nối server", "error");
     }
 }
+
+//kết nối nút với hàm
 document.addEventListener("DOMContentLoaded", () => {
     const form = $("lookup-form");
 

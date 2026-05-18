@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Booking extends Model
 {
 
-    protected $fillable = [ //danh sách các cột được gán dữ liệu hàng loạt
+    protected $fillable = [ #danh sách các cột được gán dữ liệu hàng loạt
         'booking_code',
 
         'customer_name',
@@ -32,7 +32,7 @@ class Booking extends Model
     ];
 
 
-    protected $casts = [ //ép kiểu dữ liệu
+    protected $casts = [ #ép kiểu dữ liệu
         'booking_date' => 'date:Y-m-d',
         'start_at' => 'datetime',
         'end_at' => 'datetime',
@@ -41,17 +41,17 @@ class Booking extends Model
     ];
 
 
-    public function getDisplayNameAttribute() //tóm tắt thông tin
+    public function getDisplayNameAttribute() #tóm tắt thông tin
     {
         return $this->booking_code . ' - ' . $this->customer_name;
     }
 
-    public function stylist() //Quan hệ 1 booking - stylist
+    public function stylist() #Quan hệ 1 booking - stylist
     {
         return $this->belongsTo(Stylist::class);
     }
 
-    public function services() //Quan hệ nhiều-nhiều booking - services
+    public function services() #Quan hệ nhiều-nhiều booking - services
     {
         return $this->belongsToMany(Service::class, 'booking_service')
             ->withPivot(['service_name', 'price', 'duration_min'])

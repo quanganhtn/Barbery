@@ -12,9 +12,9 @@ class BookingCodeMail extends Mailable
     use Queueable, SerializesModels;
 
 
-    public Booking $booking; //biến chứa dữ liệu booking
+    public Booking $booking; #biến chứa dữ liệu booking
 
-    public function __construct(Booking $booking) //chèn booking vào mail
+    public function __construct(Booking $booking) #chèn booking vào mail
     {
         $this->booking = $booking;
     }

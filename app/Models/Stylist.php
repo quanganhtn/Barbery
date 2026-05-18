@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class Stylist extends Model
 {
     protected $fillable = [
-        'code',
         'name',
         'role',
         'exp',

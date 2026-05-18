@@ -7,13 +7,13 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class ChatbotController extends Controller
 {
-    public function send(Request $request) //nhận tin nhắn từ người dùng
+    public function send(Request $request) #nhận tin nhắn từ người dùng
     {
         $data = $request->validate([
             'message' => ['required', 'string', 'max:1000'],
         ]);
 
-        // Giới hạn gửi tin nhắn theo IP
+        #Giới hạn gửi tin nhắn theo IP
         $rateKey = 'chatbot:' . $request->ip();
 
         if (RateLimiter::tooManyAttempts($rateKey, 10)) {
@@ -25,13 +25,13 @@ class ChatbotController extends Controller
 
         RateLimiter::hit($rateKey, 60);
 
-        // Lấy tin nhắn của người dùng
+        # Lấy tin nhắn của người dùng
         $message = $data['message'];
 
-        // Chuẩn hóa tin nhắn (xóa khoảng trắng, viết thường)
+        # Chuẩn hóa tin nhắn (xóa khoảng trắng, viết thường)
         $message = mb_strtolower(trim($message), 'UTF-8');
 
-        // Dò từ khóa và trả lời phù hợp
+        # Dò từ khóa và trả lời phù hợp
         $reply = $this->getReply($message);
 
         return response()->json([
@@ -65,7 +65,7 @@ class ChatbotController extends Controller
             'support' => ['tư vấn', 'nhân viên', 'liên hệ', 'hỗ trợ', 'tu van', 'nhan vien', 'lien he', 'ho tro', 'hotline'],
         ];
 
-        // Kiểm tra các từ khóa và trả lời phù hợp
+        # Kiểm tra các từ khóa và trả lời phù hợp
         foreach ($faq as $intent => $keywords) {
             foreach ($keywords as $keyword) {
                 if (strpos($message, $keyword) !== false) {
@@ -74,7 +74,7 @@ class ChatbotController extends Controller
             }
         }
 
-        // Nếu không khớp với từ khóa nào, trả lời fallback
+        # Nếu không khớp với từ khóa nào, trả lời fallback
         return 'Xin lỗi, tôi chưa hiểu rõ câu hỏi. Bạn có thể hỏi về đặt lịch, dịch vụ, stylist, tra cứu lịch hoặc gợi ý kiểu tóc bằng AI.';
     }
 

@@ -56,11 +56,11 @@ window.fetchJson = async function (url, opts = {}) {
 
 //hiện thông báo nổi
 window.showToast = function (message, type = "success") {
-    const container = window.$id("toast-container");
-    if (!container) return;
+    const container = window.$id("toast-container");  //tìm nơi chứ thông báo
+    if (!container) return;  //nếu rỗng thì dừng
 
-    const toast = document.createElement("div");
-    const base = "px-6 py-3 rounded-xl shadow-lg slide-in";
+    const toast = document.createElement("div");  //tạo thẻ thông báo
+    const base = "px-6 py-3 rounded-xl shadow-lg slide-in"; //class gốc
 
     const cls =
         type === "success" ? "bg-green-500 text-white" :
@@ -68,14 +68,14 @@ window.showToast = function (message, type = "success") {
                 "bg-gray-200 text-black";
 
     toast.className = `${base} ${cls}`;
-    toast.innerHTML = `<p class="font-medium">${message}</p>`;
+    toast.innerHTML = `<p class="font-medium">${message}</p>`;  //gán nội dung
 
-    container.appendChild(toast);
+    container.appendChild(toast);  //hiện lên
 
-    setTimeout(() => toast.remove(), 3000);
+    setTimeout(() => toast.remove(), 3000); //tự xóa trong 3s
 };
 
-// ===== LOADING =====
+//chọn/hủy dịch vụ
 window.showLoading = function (show) {
     const el = window.$id("loading-overlay");
     if (!el) return;
@@ -84,7 +84,7 @@ window.showLoading = function (show) {
     el.classList.toggle("flex", show);
 };
 
-// ===== MOBILE MENU =====
+//MOBILE MENU
 window.toggleMobileMenu = function () {
     const menu = window.$id("mobile-menu");
     const overlay = window.$id("mobile-overlay");
@@ -93,7 +93,7 @@ window.toggleMobileMenu = function () {
     overlay?.classList.toggle("hidden");
 };
 
-// ===== NAV ACTIVE ON SCROLL =====
+//đổi màu trang menu
 document.addEventListener("DOMContentLoaded", () => {
     const navLinks = document.querySelectorAll(".nav-link[data-section]");
     const scrollBox = document.getElementById("app") || window;
